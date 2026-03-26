@@ -6,6 +6,15 @@ AOS.init({
     easing: 'ease-in-out'
 });
 
+// Register Service Worker for PWA (Installable App)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(registration => console.log('ServiceWorker registered'))
+      .catch(err => console.log('ServiceWorker failed: ', err));
+  });
+}
+
 // Navbar Scroll Effect
 const navbar = document.getElementById('navbar');
 window.addEventListener('scroll', () => {
