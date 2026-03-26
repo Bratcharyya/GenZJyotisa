@@ -94,6 +94,9 @@ if (bookingForm) {
             price: selectedOption.getAttribute('data-price'),
             dob: formData.get('dob'),
             tob: formData.get('tob'),
+            pob: formData.get('pob'),
+            pob_lat: formData.get('pob_lat'),
+            pob_lon: formData.get('pob_lon'),
             question: formData.get('question')
         };
         
@@ -139,8 +142,9 @@ if (verifyBtn) {
         setTimeout(() => {
             const waNumber = "919630958614";
             const focusContext = currentBookingData.question ? `\nFocus/Question: ${currentBookingData.question}` : "";
+            const coordsContext = (currentBookingData.pob_lat && currentBookingData.pob_lon) ? ` [Lat: ${parseFloat(currentBookingData.pob_lat).toFixed(4)}, Lon: ${parseFloat(currentBookingData.pob_lon).toFixed(4)}]` : "";
             
-            const text = `Hari Om! I have completed my payment of ₹${currentBookingData.price} and am submitting my booking details.\n\n*Name:* ${currentBookingData.name}\n*Service:* ${currentBookingData.service}\n*DOB:* ${currentBookingData.dob}\n*TOB:* ${currentBookingData.tob}${focusContext}\n\n*Payment UTR:* ${utr}`;
+            const text = `Hari Om! I have completed my payment of ₹${currentBookingData.price} and am submitting my booking details.\n\n*Name:* ${currentBookingData.name}\n*Service:* ${currentBookingData.service}\n*DOB:* ${currentBookingData.dob}\n*TOB:* ${currentBookingData.tob}\n*Place:* ${currentBookingData.pob}${coordsContext}${focusContext}\n\n*Payment UTR:* ${utr}`;
             
             const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(text)}`;
             window.open(waLink, '_blank');
@@ -153,5 +157,71 @@ if (verifyBtn) {
         
         fetch('/submit_booking', { method: 'POST', body: dbFormData })
             .catch((error) => console.log("Backend not active, relying entirely on WhatsApp."));
+    });
+}
+
+// Place of Birth Autocomplete API (Free OpenStreetMap Nominatim)
+const pobInput = document.getElementById('pob-input');
+const pobDropdown = document.getElementById('pob-dropdown');
+const pobLat = document.getElementById('pob-lat');
+const pobLon = document.getElementById('pob-lon');
+
+let debounceTimer;
+
+if (pobInput) {
+    pobInput.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        const query = this.value.trim();
+        
+        if (query.length < 3) {
+            pobDropdown.style.display = 'none';
+            return;
+        }
+        
+        debounceTimer = setTimeout(() => {
+            fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5`)
+                .then(response => response.json())
+                .then(data => {
+                    pobDropdown.innerHTML = '';
+                    if (data.length > 0) {
+                        data.forEach(place => {
+                            const option = document.createElement('div');
+                            option.style.padding = '10px 15px';
+                            option.style.cursor = 'pointer';
+                            option.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+                            option.style.fontSize = '0.9rem';
+                            option.style.color = 'var(--text-primary)';
+                            
+                            option.addEventListener('mouseover', () => option.style.background = 'rgba(201,168,76,0.1)');
+                            option.addEventListener('mouseout', () => option.style.background = 'transparent');
+                            
+                            option.innerText = place.display_name;
+                            
+                            option.addEventListener('click', () => {
+                                pobInput.value = place.display_name;
+                                pobLat.value = place.lat;
+                                pobLon.value = place.lon;
+                                pobDropdown.style.display = 'none';
+                            });
+                            
+                            pobDropdown.appendChild(option);
+                        });
+                        pobDropdown.style.display = 'block';
+                    } else {
+                        pobDropdown.style.display = 'none';
+                    }
+                })
+                .catch(err => {
+                    console.error('Error fetching places:', err);
+                    pobDropdown.style.display = 'none';
+                });
+        }, 500);
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (pobInput && pobDropdown && e.target !== pobInput && e.target !== pobDropdown && !pobDropdown.contains(e.target)) {
+            pobDropdown.style.display = 'none';
+        }
     });
 }
