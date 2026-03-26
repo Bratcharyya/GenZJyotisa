@@ -1,4 +1,4 @@
-const CACHE_NAME = 'genz-jyotisa-v3';
+const CACHE_NAME = 'genz-jyotisa-v5';
 const urlsToCache = [
   '/',
   '/index.html',

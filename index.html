@@ -350,14 +350,14 @@
                             </div>
                             <div class="form-group">
                                 <label>Time of Birth</label>
-                                <input type="text" name="tob" required placeholder="e.g. 05:30 AM or 14:30">
-                                <small>Please be as exact as possible.</small>
+                                <input type="text" name="tob" required placeholder="e.g. 05:30 AM or 02:45 PM">
+                                <small>Please include AM or PM.</small>
                             </div>
                         </div>
                         <div class="form-group" style="position: relative;">
                             <label>Place of Birth (City, State, Country)</label>
-                            <input type="text" id="pob-input" name="pob" required placeholder="e.g., Delhi, Delhi, India" autocomplete="off">
-                            <div id="pob-dropdown" style="display:none; position:absolute; width:100%; max-height: 200px; overflow-y: auto; background: var(--bg-dark); border: 1px solid var(--border-light); border-top: none; border-radius: 0 0 8px 8px; z-index: 1000; padding: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.5);"></div>
+                            <input type="text" id="pob-input" name="pob" required placeholder="e.g., Delhi, Delhi, India" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false">
+                            <div id="pob-dropdown" style="display:none; position:absolute; width:100%; max-height: 250px; overflow-y: auto; background: var(--bg-dark); border: 1px solid var(--border-light); border-top: none; border-radius: 0 0 8px 8px; z-index: 1000; padding: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.5); -webkit-overflow-scrolling: touch;"></div>
                             <input type="hidden" name="pob_lat" id="pob-lat">
                             <input type="hidden" name="pob_lon" id="pob-lon">
                         </div>
@@ -394,17 +394,27 @@
                             <p>Total Amount: <strong style="color:var(--accent-gold); font-size: 1.2rem; float: right;">₹<span id="pay-amount"></span></strong></p>
                         </div>
                         
-                        <div style="background: white; padding: 1rem; border-radius: 12px; display: inline-block; margin-bottom: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
-                            <!-- QR Code dynamically generated via API -->
-                            <img id="upi-qr" src="" alt="UPI QR Code" style="width: 200px; height: 200px; display: block;">
+                        <!-- Mobile Deep Link Button -->
+                        <div id="mobile-pay-btn-container" style="display: none; margin-bottom: 1.5rem;">
+                            <a id="mobile-pay-btn" href="#" class="btn btn-primary btn-block" style="background: var(--accent-gold); color: var(--bg-dark); font-weight: bold; font-size: 1.1rem; padding: 1.2rem; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                <i class="fas fa-mobile-alt"></i> Tap to Pay via UPI App
+                            </a>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">(Automatically opens GPay, PhonePe, or Paytm)</p>
+                        </div>
+
+                        <!-- Desktop QR Code -->
+                        <div id="desktop-qr-container">
+                            <div style="background: white; padding: 1rem; border-radius: 12px; display: inline-block; margin-bottom: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+                                <!-- QR Code dynamically generated via API -->
+                                <img id="upi-qr" src="" alt="UPI QR Code" style="width: 200px; height: 200px; display: block;">
+                            </div>
+                            <p style="font-weight: 500; font-size: 1.1rem; color: var(--text-primary); margin-bottom: 0.2rem;">Scan with any UPI App</p>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem;">GPay, PhonePe, Paytm, BHIM</p>
                         </div>
                         
-                        <p style="font-weight: 500; font-size: 1.1rem; color: var(--text-primary); margin-bottom: 0.2rem;">Scan with any UPI App</p>
-                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem;">GPay, PhonePe, Paytm, BHIM</p>
-                        
                         <div style="background: rgba(107, 31, 42, 0.1); padding: 0.8rem; border-radius: 6px; margin-bottom: 1.5rem;">
-                            <span style="font-size: 0.85rem; color: var(--text-secondary);">Or pay directly to UPI ID:</span><br>
-                            <strong style="color: var(--accent-burgundy); letter-spacing: 0.5px;">sarthakbhattacharyyya-1@okaxis</strong>
+                            <span style="font-size: 0.85rem; color: var(--text-secondary);">Verified UPI ID:</span><br>
+                            <strong style="color: var(--accent-burgundy); letter-spacing: 0.5px; font-size: 1.1rem;">sarthakbhattacharyyya-1@okaxis</strong>
                         </div>
                         
                         <div style="text-align: left;">

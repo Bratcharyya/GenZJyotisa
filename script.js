@@ -105,13 +105,28 @@ if (bookingForm) {
             return;
         }
         
+        // Strict AM/PM Validation for Time of Birth
+        const tobCheck = currentBookingData.tob.toUpperCase();
+        if (!tobCheck.includes("AM") && !tobCheck.includes("PM")) {
+            alert("Please specify AM or PM in your Time of Birth.");
+            return;
+        }
+        
         // Generate UPI QR Code URL
         const upiId = "sarthakbhattacharyyya-1@okaxis";
         const upiName = "Sarthak Bhattacharyya";
         const upiString = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(upiName)}&am=${currentBookingData.price}&cu=INR`;
         
-        // Use QR server to generate image
+        // Use QR server to generate image for desktop
         document.getElementById('upi-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiString)}`;
+        
+        // Mobile Deep Link Detection (If mobile, show tap-to-pay button)
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isMobile) {
+            document.getElementById('mobile-pay-btn-container').style.display = 'block';
+            document.getElementById('mobile-pay-btn').href = upiString;
+            document.getElementById('desktop-qr-container').style.display = 'none';
+        }
         
         // Populate Payment UI
         document.getElementById('pay-service-name').innerText = currentBookingData.service;
@@ -179,25 +194,30 @@ if (pobInput) {
         }
         
         debounceTimer = setTimeout(() => {
-            fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5`)
+            fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5`, {
+                headers: { 'Accept-Language': 'en-US,en;q=0.9' }
+            })
                 .then(response => response.json())
                 .then(data => {
                     pobDropdown.innerHTML = '';
                     if (data.length > 0) {
                         data.forEach(place => {
                             const option = document.createElement('div');
-                            option.style.padding = '10px 15px';
+                            option.style.padding = '15px'; // Thicker padding for massive thumbs on mobile
                             option.style.cursor = 'pointer';
                             option.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
-                            option.style.fontSize = '0.9rem';
+                            option.style.fontSize = '16px';
                             option.style.color = 'var(--text-primary)';
+                            option.style.lineHeight = '1.4';
                             
                             option.addEventListener('mouseover', () => option.style.background = 'rgba(201,168,76,0.1)');
                             option.addEventListener('mouseout', () => option.style.background = 'transparent');
                             
                             option.innerText = place.display_name;
                             
-                            option.addEventListener('click', () => {
+                            // Pointerdown acts instantly on mobile (before blur logic destroys the menu)
+                            option.addEventListener('pointerdown', (e) => {
+                                e.preventDefault(); // Prevents keyboard from immediately closing if active
                                 pobInput.value = place.display_name;
                                 pobLat.value = place.lat;
                                 pobLon.value = place.lon;
@@ -218,9 +238,9 @@ if (pobInput) {
         }, 500);
     });
 
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function(e) {
-        if (pobInput && pobDropdown && e.target !== pobInput && e.target !== pobDropdown && !pobDropdown.contains(e.target)) {
+    // Close dropdown instantly when clicking/tapping elsewhere
+    document.addEventListener('pointerdown', function(e) {
+        if (pobInput && pobDropdown && e.target !== pobInput && !pobDropdown.contains(e.target)) {
             pobDropdown.style.display = 'none';
         }
     });
