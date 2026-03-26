@@ -89,31 +89,27 @@ if (bookingForm) {
         const dob = formData.get('dob');
         const tob = formData.get('tob');
         
-        // Submit form data to Flask backend
+        // Show success message immediately
+        formMessage.style.display = 'block';
+        
+        // WhatsApp Redirect unconditionally (Works perfectly on Vercel without backend)
+        setTimeout(() => {
+            const waNumber = "919630958614";
+            const text = `Hari Om! I just submitted a booking request on GenZ Jyotiṣa.\n\nName: ${name}\nService: ${service}\nDOB: ${dob}\nTOB: ${tob}\n\nPlease share the payment details.`;
+            const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(text)}`;
+            window.open(waLink, '_blank');
+        }, 1500);
+
+        // Optional Backend Logging (Fails silently on static Vercel)
         fetch('/submit_booking', {
             method: 'POST',
             body: formData
         })
         .then(response => response.json())
-        .then(data => {
-            console.log("Success:", data);
-            
-            // Show success message
-            formMessage.style.display = 'block';
-            bookingForm.reset();
-            
-            // WhatsApp Redirect
-            setTimeout(() => {
-                const waNumber = "919630958614";
-                const text = `Hari Om! I just submitted a booking request on GenZ Jyotiṣa.\n\nName: ${name}\nService: ${service}\nDOB: ${dob}\nTOB: ${tob}\n\nPlease share the payment details.`;
-                const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(text)}`;
-                window.open(waLink, '_blank');
-            }, 2000);
-        })
-        .catch((error) => {
-            console.error('Error:', error);
-            alert("There was an error submitting your request. Please try contacting via WhatsApp directly.");
-        });
+        .then(data => console.log("Backend log success:", data))
+        .catch((error) => console.log("Backend not active, relying entirely on WhatsApp."));
+        
+        bookingForm.reset();
     });
 }
 

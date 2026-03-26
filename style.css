@@ -743,9 +743,9 @@ a:hover {
 
 .form-group label {
   display: block;
-  font-size: 0.9rem;
-  color: var(--text-primary);
   margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--text-secondary);
 }
 
 .form-group small {
@@ -755,17 +755,25 @@ a:hover {
   margin-top: 0.3rem;
 }
 
-.form-group input,
-.form-group select,
-.form-group textarea {
+input, select, textarea {
   width: 100%;
-  padding: 0.8rem 1rem;
-  background: rgba(13, 13, 43, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  padding: 1rem;
+  background: var(--bg-dark);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
   color: var(--text-primary);
   font-family: var(--font-body);
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  font-size: 16px !important; /* Forces 16px to completely prevent iOS/Android zooming bugs */
+  transition: all 0.3s ease;
+  box-sizing: border-box; 
+  -webkit-appearance: none; /* Reset iOS styles for standard text inputs */
+  appearance: none;
+}
+
+input[type="date"], input[type="time"] {
+  -webkit-appearance: auto; /* Required so time/date pickers don't break */
+  appearance: auto;
+  color-scheme: dark; /* Forces mobile pickers to match the dark theme */
 }
 
 .form-group input:focus,
@@ -876,13 +884,29 @@ a:hover {
     gap: 1rem;
   }
   
+  /* Mobile Form Adjustments */
+  .booking-container {
+    padding: 1.5rem 1rem;
+    gap: 2rem;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  input, select, textarea {
+    padding: 0.8rem;
+  }
+  
+  .form-section-title {
+    font-size: 1rem;
+  }
+  
   .about-content {
     gap: 2rem;
     text-align: center;
   }
   
   .timeline::before {
-    left: 40px;
+    left: 20px;
   }
   
   .timeline-item, .timeline-item:nth-child(even) {
@@ -896,7 +920,8 @@ a:hover {
   }
   
   .timeline-content {
-    width: 100%;
+    width: calc(100% - 50px);
+    margin-left: 50px !important;
   }
   
   .timeline-item:nth-child(odd) .timeline-content::after,
