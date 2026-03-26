@@ -362,14 +362,14 @@
                         <h4 class="form-section-title">Consultation</h4>
                         <div class="form-group">
                             <label>Select Service</label>
-                            <select name="service" required>
-                                <option value="">Select...</option>
-                                <option value="Natal 45">Natal Chart Reading - 45 min (₹501)</option>
-                                <option value="Natal 60">Natal Chart Reading - 60 min (₹1001)</option>
-                                <option value="Career">Career & Finance - 45 min (₹501)</option>
-                                <option value="Relationship">Relationship Compatibility - 60 min (₹1001)</option>
-                                <option value="Muhurta">Muhūrta - 45 min (₹501)</option>
-                                <option value="Prashna">Prashna - 45 min (₹501)</option>
+                            <select name="service" required id="service-select">
+                                <option value="" data-price="0">Select...</option>
+                                <option value="Natal Chart Reading (45 min)" data-price="501">Natal Chart Reading - 45 min (₹501)</option>
+                                <option value="Natal Chart Reading (60 min)" data-price="1001">Natal Chart Reading - 60 min (₹1001)</option>
+                                <option value="Career & Finance" data-price="501">Career & Finance - 45 min (₹501)</option>
+                                <option value="Relationship Compatibility" data-price="1001">Relationship Compatibility - 60 min (₹1001)</option>
+                                <option value="Muhurta" data-price="501">Muhūrta - 45 min (₹501)</option>
+                                <option value="Prashna" data-price="501">Prashna - 45 min (₹501)</option>
                             </select>
                         </div>
                         
@@ -378,10 +378,41 @@
                             <textarea name="question" rows="4"></textarea>
                         </div>
 
-                        <button type="submit" class="btn btn-primary btn-block">Submit & Proceed to Payment</button>
+                        <button type="submit" class="btn btn-primary btn-block">Confirm Details & Proceed to Pay</button>
                     </form>
+                    
+                    <!-- Dynamic Payment Gateway -->
+                    <div id="payment-gateway" style="display:none; text-align:center; padding: 2.5rem 1.5rem; background: rgba(13, 13, 43, 0.6); border: 1px solid var(--accent-gold); border-radius: 12px; margin-top: 2rem;">
+                        <h3 style="color: var(--accent-gold); margin-bottom: 0.5rem; font-size: 1.8rem;"><i class="fas fa-lock"></i> Secure Payment</h3>
+                        <p style="margin-bottom: 1.5rem; font-size: 0.95rem;">Please complete your payment to finalize the booking.</p>
+                        
+                        <div style="text-align: left; background: rgba(255, 255, 255, 0.02); padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; border: 1px solid rgba(255,255,255,0.1);">
+                            <p style="margin-bottom: 0.3rem;">Service: <span id="pay-service-name" style="font-weight:600; color:var(--text-primary); float: right;"></span></p>
+                            <p>Total Amount: <strong style="color:var(--accent-gold); font-size: 1.2rem; float: right;">₹<span id="pay-amount"></span></strong></p>
+                        </div>
+                        
+                        <div style="background: white; padding: 1rem; border-radius: 12px; display: inline-block; margin-bottom: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+                            <!-- QR Code dynamically generated via API -->
+                            <img id="upi-qr" src="" alt="UPI QR Code" style="width: 200px; height: 200px; display: block;">
+                        </div>
+                        
+                        <p style="font-weight: 500; font-size: 1.1rem; color: var(--text-primary); margin-bottom: 0.2rem;">Scan with any UPI App</p>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem;">GPay, PhonePe, Paytm, BHIM</p>
+                        
+                        <div style="background: rgba(107, 31, 42, 0.1); padding: 0.8rem; border-radius: 6px; margin-bottom: 1.5rem;">
+                            <span style="font-size: 0.85rem; color: var(--text-secondary);">Or pay directly to UPI ID:</span><br>
+                            <strong style="color: var(--accent-burgundy); letter-spacing: 0.5px;">sarthakbhattacharyyya-1@okaxis</strong>
+                        </div>
+                        
+                        <div style="text-align: left;">
+                            <label style="display:block; margin-bottom:0.5rem; font-weight: 500;">Payment Verification</label>
+                            <input type="text" id="utr-input" placeholder="Enter 12-Digit UTR / Ref No." maxlength="12" style="margin-bottom: 1rem; border-color: var(--accent-gold); text-align: center; letter-spacing: 1px;">
+                            <button id="verify-payment-btn" class="btn btn-primary btn-block">Verify & Send to WhatsApp</button>
+                        </div>
+                    </div>
+
                     <div id="form-message" style="display:none; margin-top:20px; padding:15px; background:rgba(201,168,76,0.1); border-left:4px solid var(--accent-gold);">
-                        Thank you! You are being redirected to WhatsApp to send your details. The Google Meet link for your session is <a href="https://meet.google.com/iub-uyku-oun" target="_blank" style="color:var(--text-primary); text-decoration:underline;">meet.google.com/iub-uyku-oun</a>.
+                        Payment Verified! You've been redirected to WhatsApp to complete your booking. Your Google Meet link is: <a href="https://meet.google.com/iub-uyku-oun" target="_blank" style="color:var(--text-primary); text-decoration:underline;">meet.google.com/iub-uyku-oun</a>
                     </div>
                 </div>
             </div>

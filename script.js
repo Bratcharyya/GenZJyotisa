@@ -74,42 +74,84 @@ faqQuestions.forEach(question => {
     });
 });
 
-// Booking Form Handler
+// Booking// Booking Form Submission & Payment Gateway Logic
 const bookingForm = document.getElementById('booking-form');
+const paymentGateway = document.getElementById('payment-gateway');
 const formMessage = document.getElementById('form-message');
+let currentBookingData = {};
 
 if (bookingForm) {
     bookingForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        // Collect form data for WhatsApp redirect
-        const formData = new FormData(this);
-        const name = formData.get('name');
-        const service = formData.get('service');
-        const dob = formData.get('dob');
-        const tob = formData.get('tob');
+        const formData = new FormData(bookingForm);
+        const serviceSelect = document.getElementById('service-select');
+        const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
         
-        // Show success message immediately
-        formMessage.style.display = 'block';
+        currentBookingData = {
+            name: formData.get('name'),
+            service: selectedOption.textContent.split(' - ')[0], // Extracts clean service name
+            price: selectedOption.getAttribute('data-price'),
+            dob: formData.get('dob'),
+            tob: formData.get('tob'),
+            question: formData.get('question')
+        };
         
-        // WhatsApp Redirect unconditionally (Works perfectly on Vercel without backend)
-        setTimeout(() => {
-            const waNumber = "919630958614";
-            const text = `Hari Om! I just submitted a booking request on GenZ Jyotiṣa.\n\nName: ${name}\nService: ${service}\nDOB: ${dob}\nTOB: ${tob}\n\nPlease share the payment details.`;
-            const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(text)}`;
-            window.open(waLink, '_blank');
-        }, 1500);
-
-        // Optional Backend Logging (Fails silently on static Vercel)
-        fetch('/submit_booking', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => console.log("Backend log success:", data))
-        .catch((error) => console.log("Backend not active, relying entirely on WhatsApp."));
+        if (!currentBookingData.price || currentBookingData.price === "0") {
+            alert("Please select a valid service.");
+            return;
+        }
         
-        bookingForm.reset();
+        // Generate UPI QR Code URL
+        const upiId = "sarthakbhattacharyyya-1@okaxis";
+        const upiName = "Sarthak Bhattacharyya";
+        const upiString = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(upiName)}&am=${currentBookingData.price}&cu=INR`;
+        
+        // Use QR server to generate image
+        document.getElementById('upi-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiString)}`;
+        
+        // Populate Payment UI
+        document.getElementById('pay-service-name').innerText = currentBookingData.service;
+        document.getElementById('pay-amount').innerText = currentBookingData.price;
+        
+        // Swap Views
+        bookingForm.style.display = 'none';
+        paymentGateway.style.display = 'block';
     });
 }
 
+// Payment Verification & WhatsApp Redirect Logic
+const verifyBtn = document.getElementById('verify-payment-btn');
+if (verifyBtn) {
+    verifyBtn.addEventListener('click', function() {
+        const utr = document.getElementById('utr-input').value.trim();
+        
+        if (utr.length < 12) {
+            alert("Payment Verification Failed: Please enter a valid 12-digit UTR or transaction reference number from your payment app (Google Pay/PhonePe/Paytm).");
+            return;
+        }
+        
+        // Hide gateway, show success message
+        paymentGateway.style.display = 'none';
+        formMessage.style.display = 'block';
+        
+        // Redirect to WhatsApp with payment proof
+        setTimeout(() => {
+            const waNumber = "919630958614";
+            const focusContext = currentBookingData.question ? `\nFocus/Question: ${currentBookingData.question}` : "";
+            
+            const text = `Hari Om! I have completed my payment of ₹${currentBookingData.price} and am submitting my booking details.\n\n*Name:* ${currentBookingData.name}\n*Service:* ${currentBookingData.service}\n*DOB:* ${currentBookingData.dob}\n*TOB:* ${currentBookingData.tob}${focusContext}\n\n*Payment UTR:* ${utr}`;
+            
+            const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(text)}`;
+            window.open(waLink, '_blank');
+        }, 1000);
+        
+        // Optional Backend Logging (Fails silently on static Vercel)
+        const dbFormData = new FormData();
+        Object.keys(currentBookingData).forEach(key => dbFormData.append(key, currentBookingData[key]));
+        dbFormData.append('utr', utr);
+        
+        fetch('/submit_booking', { method: 'POST', body: dbFormData })
+            .catch((error) => console.log("Backend not active, relying entirely on WhatsApp."));
+    });
+}
