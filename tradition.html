@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Tradition - GenZ Jyotiṣa</title>
+    <meta name="description" content="Learn about Vedic Astrology and the classical Pārāśarī tradition.">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- AOS for Animations -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .hero { height: 60vh; }
+        
+        .tradition-content {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .tradition-section {
+            margin-bottom: 4rem;
+        }
+
+        .tradition-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--accent-gold);
+            border-bottom: 1px solid var(--border-light);
+            padding-bottom: 0.5rem;
+        }
+
+        .tradition-section p {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            line-height: 1.8;
+        }
+
+        .concept-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .concept-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .concept-card h4 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .concept-card p {
+            font-size: 0.95rem;
+            margin-bottom: 0;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+            background: var(--bg-card);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .comparison-table th, .comparison-table td {
+            padding: 1.2rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .comparison-table th {
+            font-family: var(--font-heading);
+            font-size: 1.2rem;
+            color: var(--accent-gold);
+            background: rgba(13, 13, 43, 0.8);
+        }
+
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <a href="index.html" class="nav-brand">
+            GenZ Jyotiṣa
+            <span class="nav-subtitle">Ancient Stars, Modern Souls</span>
+        </a>
+        
+        <div class="hamburger" id="hamburger">
+            <i class="fas fa-bars"></i>
+        </div>
+
+        <div class="nav-links" id="nav-links">
+            <a href="index.html">Home</a>
+            <a href="index.html#about">About</a>
+            <a href="index.html#services">Services</a>
+            <a href="tradition.html" style="color:var(--accent-gold)">The Tradition</a>
+            <a href="index.html#booking" class="btn btn-primary">Book Now</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="stars"></div>
+        <div class="hero-content" data-aos="fade-up">
+            <h1>The Living Science of Jyotiṣa</h1>
+            <p>Ancient wisdom decoded for the modern journey.</p>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="section-padding">
+        <div class="container tradition-content">
+            
+            <section class="tradition-section" data-aos="fade-up">
+                <h2>What is Vedic Astrology?</h2>
+                <p>Jyotiṣa (Vedic Astrology) is considered one of the six Vedāṅgas (limbs of the Vedas), functionally acting as the "eye" of the Veda. It is a highly precise astronomical and predictive system developed thousands of years ago in ancient India. Unlike modern systems that focus solely on psychology, Jyotiṣa provides a mathematical blueprint of karma, mapping out precise timing for life events and overarching life paths.</p>
+            </section>
+
+            <section class="tradition-section" data-aos="fade-up">
+                <h2>Who was Maharṣi Pārāśara?</h2>
+                <p>Maharṣi Pārāśara is revered as the father of classical Jyotiṣa. He is the author of the foundational text, the Bṛhat Pārāśara Horā Śāstra (BPHS). His teachings outline the most complete and systematic approach to astrological interpretation, which forms the bedrock of the "Pārāśarī" tradition followed by genuine practitioners today.</p>
+            </section>
+
+            <section class="tradition-section" data-aos="fade-up">
+                <h2>What is BPHS?</h2>
+                <p>The <em>Bṛhat Pārāśara Horā Śāstra</em> is essentially the encyclopedia of Vedic Astrology. Covering over 100 chapters, it details everything from basic planetary significations and sign traits, to the complex mathematics of casting divisional charts (Vargas), calculating planetary periods (Daśās), identifying special combinations (Yogas), and prescribing remedies.</p>
+            </section>
+
+            <section class="tradition-section" data-aos="fade-up">
+                <h2>The Paramparā</h2>
+                <p>Knowledge of Jyotiṣa is passed down through an unbroken lineage of teachers—a <em>Paramparā</em>. Our tradition originates from the 16th-century seer and saint, <strong>Sri Achyutananda Das</strong> of Odisha. He was one of the "Panchasakha" (five friends) and a profound mystic who authored numerous critical works on Jyotiṣa and spirituality.</p>
+                <p>This sacred knowledge has been preserved through generations of traditional astrologers in Puri, Odisha. Today, this lineage is led by the esteemed <strong>Pandit Sanjay Rath</strong>, founder of শ্রী Jagannath Center (SJC), who has systematically brought this ancient wisdom to the modern era. You can learn more about this unbroken lineage at <a href="https://srath.com" target="_blank" style="color:var(--accent-gold); text-decoration:underline;">srath.com</a>.</p>
+            </section>
+
+            <section class="tradition-section" data-aos="fade-up">
+                <h2>Key Concepts Explained</h2>
+                <div class="concept-cards">
+                    <div class="concept-card">
+                        <h4>Rāśi (Signs)</h4>
+                        <p>The 12 zodiac signs, representing the environment or field where planetary energies operate.</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>Grahas (Planets)</h4>
+                        <p>The 9 visible 'grabbers' of consciousness (including Rahu/Ketu), the active agents of karma.</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>Bhāvas (Houses)</h4>
+                        <p>The 12 areas of life (career, marriage, wealth, etc.) where karma unfolds.</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>Nakṣatras</h4>
+                        <p>The 27 Lunar Mansions. The deepest, most psychological layer of the Zodiac.</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>Daśā</h4>
+                        <p>The unique planetary period system that dictates *when* specific events will manifest in life.</p>
+                    </div>
+                    <div class="concept-card">
+                        <h4>Yogas</h4>
+                        <p>Specific planetary combinations that form unique patterns of success, struggle, or spirituality.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="tradition-section" style="text-align: center; margin: 4rem 0;" data-aos="zoom-in">
+                <img src="assets/zodiac.png" alt="Vedic Star Wheel" style="width: 100%; max-width: 500px; border-radius: 50%; border: 1px dashed var(--accent-gold); box-shadow: 0 0 40px rgba(201, 168, 76, 0.15);">
+            </section>
+
+            <section class="tradition-section" data-aos="fade-up">
+                <h2>Jyotiṣa vs Western Astrology</h2>
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>Vedic (Jyotiṣa)</th>
+                            <th>Western</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Zodiac System</strong></td>
+                            <td>Sidereal (Fixed to actual star positions)</td>
+                            <td>Tropical (Fixed to the seasons/equinox)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Core Focus</strong></td>
+                            <td>Moon & Ascendant (Mind & Self)</td>
+                            <td>Sun Sign (Ego & Expression)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Predictive Tools</strong></td>
+                            <td>Daśā (Planetary periods) & Transits</td>
+                            <td>Primarily Transits & Progressions</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Approach</strong></td>
+                            <td>Destiny, Karma, Timing & Remedies</td>
+                            <td>Psychological traits & Personality</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
+            <div style="text-align: center; margin-top: 4rem;" data-aos="zoom-in">
+                <a href="index.html#booking" class="btn btn-primary" style="font-size: 1.2rem; padding: 1rem 3rem;">Ready to explore your chart? Book a consultation</a>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer style="padding: 2rem; text-align: center; border-top: 1px solid var(--border-light); margin-top: 2rem;">
+        <div style="margin-bottom: 1.5rem; font-size: 1.5rem; color: var(--accent-gold); display: flex; justify-content: center; gap: 1.5rem;">
+            <a href="https://www.instagram.com/alpacinoismydaddy?igsh=cnh3cW4weGU3Nml1" target="_blank"><i class="fab fa-instagram"></i></a>
+            <a href="https://wa.me/919630958614" target="_blank"><i class="fab fa-whatsapp"></i></a>
+        </div>
+        <p>© 2025 GenZ Jyotiṣa | <strong><em>Sarthak Bhattacharyya</em></strong>. All Rights Reserved.</p>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
