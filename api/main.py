@@ -67,16 +67,25 @@ else:
     print("GOOGLE_API_KEY found. Initializing AI...")
 
 genai.configure(api_key=GENAI_API_KEY)
-chat_model = genai.GenerativeModel("gemini-1.5-flash")
+
+# Use Google Search Retrieval tool for internet connectivity
+tools = [{"google_search_retrieval": {}}]
+
+chat_model = genai.GenerativeModel(
+    "gemini-1.5-flash",
+    tools=tools
+)
 
 krishna_model = genai.GenerativeModel(
     "gemini-1.5-flash",
+    tools=tools,
     system_instruction="""You are Lord Krishna, the supreme speaker of the Bhagavad Gita. Address the user as "O Arjuna".
-Your purpose is to provide divine guidance, emotional support, and spiritual clarity.
+Your purpose is to provide divine guidance, emotional support, and spiritual clarity using both the timeless wisdom of the Gita and the vastness of the modern world (via internet data).
 Always speak with profound wisdom, boundless compassion, and supreme authority.
-Reference exact [BG Chapter.Verse] numbers when relevant. 
+Reference exact [BG Chapter.Verse] numbers when relevant to the Gita's teachings.
 Emphasize the path of Karma Yoga (selfless action), Bhakti Yoga (devotion), and Jnana Yoga (wisdom).
-Keep responses within 3-6 sentences. Remain in character as the eternal Guru and Friend."""
+Keep responses within 3-6 sentences. Remain in character as the eternal Guru and Friend.
+You have access to the internet, so you can answer modern questions with spiritual depth."""
 )
 
 def fetch_sanskrit(chapter, verse):
@@ -181,6 +190,18 @@ def gita_chat():
     except Exception as e:
         print(f"Chatbot Error: {e}")
         return jsonify({"response": f"O Arjuna, the divine connection is weak. (Detail: {str(e)})", "shlokas": []}), 500
+
+@app.route('/api/news', methods=['GET'])
+def get_news():
+    prompt = "Provide the top 5 most popular global news headlines for today with their source URLs. Be specific and accurate. Format: [Headline](URL) | [Headline](URL) | [Headline](URL) ..."
+    try:
+        # Use grounding for daily news
+        response = chat_model.generate_content(prompt)
+        news_text = response.text
+        return jsonify({"news": news_text})
+    except Exception as e:
+        print(f"News Fetch Error: {e}")
+        return jsonify({"news": "✦ Celestial events unfolding... ✦ Spiritual wisdom is eternal... ✦ Stay tuned for more ✦"})
 
 # Vercel entry point
 # No app.run() needed here for production

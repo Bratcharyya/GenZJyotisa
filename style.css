@@ -35,28 +35,30 @@ html {
 /* --- News Marquee --- */
 .news-marquee-container {
     display: flex;
-    background: #e0e0e0;
+    background: linear-gradient(90deg, #0d0d2b, #1a1a4a, #0d0d2b);
     height: 40px;
-    border-top: 3px solid #ff0000;
+    border-top: 1px solid var(--accent-gold);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
     overflow: hidden;
     position: sticky;
     top: 0;
     z-index: 1002;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-body);
 }
 
 .news-header {
-    background: #333;
-    color: #fff;
+    background: var(--accent-gold);
+    color: var(--bg-dark);
     padding: 0 1.2rem;
     display: flex;
     align-items: center;
-    font-weight: 800;
-    font-size: 0.85rem;
-    letter-spacing: 1px;
+    font-weight: 900;
+    font-size: 0.8rem;
+    letter-spacing: 1.5px;
     white-space: nowrap;
     position: relative;
     z-index: 2;
+    text-transform: uppercase;
 }
 
 .news-track {
@@ -69,14 +71,22 @@ html {
 .news-content {
     display: inline-block;
     white-space: nowrap;
-    animation: marquee-scroll 40s linear infinite;
+    animation: marquee-scroll 60s linear infinite;
 }
 
-.news-content span {
-    font-size: 0.9rem;
-    color: #333;
-    font-weight: 600;
-    padding-right: 50px;
+.news-content span, .news-content a {
+    font-size: 0.95rem;
+    color: #e0e0e0;
+    font-weight: 500;
+    padding-right: 60px;
+    text-decoration: none;
+    transition: color 0.3s ease;
+    display: inline-block;
+}
+
+.news-content a:hover {
+    color: var(--accent-gold);
+    text-shadow: 0 0 8px rgba(201,168,76,0.5);
 }
 
 @keyframes marquee-scroll {
@@ -1114,6 +1124,157 @@ input[type="date"]::-webkit-inner-spin-button {
   color: var(--accent-gold);
 }
 
+/* Sidebar Navigation */
+.sidebar {
+    position: fixed;
+    top: 0;
+    right: -320px; /* Initially hidden on the right */
+    width: 320px;
+    height: 100vh;
+    background: #0d0d2b;
+    z-index: 2000;
+    transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-left: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+    padding: 2.5rem 2rem;
+    box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+}
+
+.sidebar.active {
+    right: 0;
+}
+
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 1999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s ease;
+}
+
+.sidebar-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3rem;
+}
+
+.sidebar-close {
+    background: none;
+    border: none;
+    color: var(--accent-gold);
+    font-size: 1.5rem;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-links {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.sidebar-links a {
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    color: var(--text-primary);
+    transition: all 0.3s ease;
+    padding: 0.5rem 0;
+}
+
+.sidebar-links a i {
+    color: var(--accent-gold);
+    width: 24px;
+    text-align: center;
+    font-size: 1.2rem;
+}
+
+.sidebar-links a:hover {
+    color: var(--accent-gold);
+    transform: translateX(10px);
+}
+
+.sidebar-toggle {
+    background: none;
+    border: none;
+    color: var(--accent-gold);
+    font-size: 1.6rem;
+    cursor: pointer;
+    margin-right: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    transition: transform 0.3s ease;
+}
+
+.sidebar-toggle:hover {
+    transform: scale(1.1);
+}
+
+.nav-extra {
+    display: flex;
+    align-items: center;
+}
+
+/* Ishta Devta Refined */
+.ishta-devta {
+    background: linear-gradient(rgba(13,13,43,0.9), rgba(13,13,43,0.9)), url('assets/ishta-devta.jpg');
+    background-size: cover;
+    background-position: center;
+    border-bottom: 2px solid var(--accent-gold);
+}
+
+.ishta-devta-container {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 4rem;
+    align-items: center;
+}
+
+.ishta-devta-image {
+    border: 2px solid var(--accent-gold);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 0 40px rgba(255, 111, 0, 0.3);
+}
+
+.ishta-devta-image img {
+    width: 100%;
+    display: block;
+    aspect-ratio: 1/1;
+    object-fit: cover;
+}
+
+.ishta-text {
+    color: #f0f0f0;
+    line-height: 1.8;
+    font-size: 1.1rem;
+}
+
+.ishta-text p {
+    margin-bottom: 1.2rem;
+}
+
 @media (max-width: 768px) {
   .gita-guidance .container {
     grid-template-columns: 1fr !important;
@@ -1132,18 +1293,16 @@ input[type="date"]::-webkit-inner-spin-button {
     padding: 3rem 1.2rem;
   }
   
-  .ishta-devta .container, 
+  .ishta-devta-container, 
   .gita-guidance .container {
     grid-template-columns: 1fr !important;
     text-align: center;
-    gap: 2rem !important;
+    gap: 2.5rem !important;
   }
 
-  .ishta-devta img, 
-  .gita-guidance img {
-    max-width: 350px;
+  .ishta-devta-image {
+    max-width: 300px;
     margin: 0 auto;
-    border-radius: 12px;
   }
 
   .ishta-devta-content,
@@ -1151,9 +1310,12 @@ input[type="date"]::-webkit-inner-spin-button {
     order: 2; /* Text below image */
   }
 
-  /* Fix for background images on mobile */
-  .ishta-devta, .gita-guidance {
-    background-attachment: scroll !important;
+  .ishta-devta h2, .gita-content h2 {
+    font-size: 2.2rem !important;
+  }
+
+  .sidebar {
+    width: 85%; /* Wider on small screens */
   }
 
   /* Timeline Mobile Fix */

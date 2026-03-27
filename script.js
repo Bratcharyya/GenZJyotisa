@@ -15,6 +15,30 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// Sidebar Toggle Logic
+const sidebar = document.getElementById('sidebar');
+const sidebarToggle = document.getElementById('sidebar-toggle-btn');
+const sidebarClose = document.getElementById('sidebar-close');
+const sidebarOverlay = document.getElementById('sidebar-overlay');
+const sidebarAnchors = document.querySelectorAll('.sidebar-link-item'); // Added class in HTML update logic if needed, but I'll use sidebar-links a
+
+function toggleSidebar() {
+    sidebar.classList.toggle('active');
+    sidebarOverlay.classList.toggle('active');
+    document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
+}
+
+if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar);
+if (sidebarClose) sidebarClose.addEventListener('click', toggleSidebar);
+if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleSidebar);
+
+// Close sidebar on anchor clicks
+document.querySelectorAll('.sidebar-links a').forEach(link => {
+    link.addEventListener('click', () => {
+        if (sidebar.classList.contains('active')) toggleSidebar();
+    });
+});
+
 // Navbar Scroll Effect
 const navbar = document.getElementById('navbar');
 window.addEventListener('scroll', () => {
@@ -25,7 +49,7 @@ window.addEventListener('scroll', () => {
     }
 });
 
-// Mobile Menu Toggle
+// Mobile Menu (Hamburger) Toggle
 const hamburger = document.getElementById('hamburger');
 const navLinks = document.getElementById('nav-links');
 
@@ -42,17 +66,6 @@ if(hamburger) {
         }
     });
 }
-
-// Close mobile menu when a link is clicked
-const mobileLinks = document.querySelectorAll('.nav-links a');
-mobileLinks.forEach(link => {
-    link.addEventListener('click', () => {
-        if(window.innerWidth <= 768 && navLinks.classList.contains('active')) {
-            navLinks.classList.remove('active');
-            hamburger.querySelector('i').classList.replace('fa-times', 'fa-bars');
-        }
-    });
-});
 
 // FAQ Accordion
 const faqQuestions = document.querySelectorAll('.faq-question');
@@ -330,7 +343,11 @@ async function getGitaGuidance() {
         resultsDiv.innerHTML = html;
         input.value = '';
     } catch (e) {
-        resultsDiv.innerHTML = '<p>Connection failed. Sri Krishna awaits your patience.</p>';
+        console.error("Gita Guidance Error:", e);
+        resultsDiv.innerHTML = `
+            <div style="background:rgba(107,31,42,0.1); padding:1rem; border-radius:8px; border-left:3px solid var(--accent-burgundy);">
+                <p>O seeker, the cosmic connection is momentarily obscured. (Check your internet or try again later.)</p>
+            </div>`;
     }
 }
 
@@ -359,6 +376,37 @@ async function sendGitaChat() {
         gitaChatHistory.push({role: "user", parts: [{text: message}]});
         gitaChatHistory.push({role: "model", parts: [{text: data.response}]});
     } catch (e) {
-        window.innerHTML += `<div style="color:var(--accent-burgundy);">O Arjuna, the connection is weak. Ask again.</div>`;
+        console.error("Krishna Chat Error:", e);
+        window.innerHTML += `<div style="color:var(--accent-burgundy); margin-top:0.5rem; font-style:italic;">"O Arjuna, the divine link is weak. Stay patient and seek again."</div>`;
+        window.scrollTop = window.scrollHeight;
     }
+}
+
+// --- Dynamic Breaking News Logic ---
+
+async function fetchBreakingNews() {
+    const marquee = document.getElementById('news-content-marquee');
+    if (!marquee) return;
+    
+    try {
+        const response = await fetch('/api/news');
+        if (!response.ok) throw new Error('News API failure');
+        const data = await response.json();
+        
+        // Convert [Headline](URL) to <a> tags
+        const html = data.news.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a> • ');
+        
+        // Duplicate content for seamless scrolling
+        marquee.innerHTML = `<span>${html}</span> <span>${html}</span>`;
+    } catch (error) {
+        console.error("Breaking News Error:", error);
+        marquee.innerHTML = '<span>✦ Celestial updates unfolding... ✦ Spiritual wisdom is eternal... ✦ Stay tuned for more ✦</span>';
+    }
+}
+
+// Ensure news is fetched after DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', fetchBreakingNews);
+} else {
+    fetchBreakingNews();
 }

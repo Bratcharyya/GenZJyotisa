@@ -20,15 +20,33 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Sidebar Navigation -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span class="nav-brand">GenZ Jyotiṣa</span>
+            <button class="sidebar-close" id="sidebar-close"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="sidebar-links">
+            <a href="index.html"><i class="fas fa-home"></i> Home</a>
+            <a href="tradition.html"><i class="fas fa-scroll"></i> The Tradition</a>
+            <a href="https://deva.guru" target="_blank"><i class="fas fa-calculator"></i> Calculate Birth Chart</a>
+            <a href="#gita-guidance" class="sidebar-anchor"><i class="fas fa-om"></i> Talk to Lord Krishna</a>
+            <a href="#about" class="sidebar-anchor"><i class="fas fa-user"></i> About Me</a>
+            <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 1rem 0;">
+            <a href="https://www.linkedin.com/in/sarthak-bhattacharyya-735489399/" target="_blank"><i class="fab fa-linkedin"></i> LinkedIn</a>
+            <a href="https://www.instagram.com/alpacinoismydaddy?igsh=cnh3cW4weGU3Nml1" target="_blank"><i class="fab fa-instagram"></i> Instagram</a>
+            <a href="https://wa.me/919630958614" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+        </div>
+    </aside>
     <!-- Breaking News Marquee -->
     <div class="news-marquee-container">
         <div class="news-header">
             <i class="fas fa-bolt"></i> BREAKING NEWS
         </div>
         <div class="news-track">
-            <div class="news-content">
-                <span>✦ Sensex and Nifty hit record highs as inflation eases globally ✦ New breakthrough in solar energy efficiency reported ✦ Major cultural festival kicks off in New Delhi ✦ AI researchers announce milestone in language understanding ✦ Mars rover finds new evidence of ancient water ✦</span>
-                <span>✦ Sensex and Nifty hit record highs as inflation eases globally ✦ New breakthrough in solar energy efficiency reported ✦ Major cultural festival kicks off in New Delhi ✦ AI researchers announce milestone in language understanding ✦ Mars rover finds new evidence of ancient water ✦</span>
+            <div class="news-content" id="news-content-marquee">
+                <span>✦ Loading cosmic updates... ✦ Seeking the latest global insights... ✦</span>
             </div>
         </div>
     </div>
@@ -40,8 +58,13 @@
             <span class="nav-subtitle">Ancient Stars, Modern Souls</span>
         </a>
         
-        <div class="hamburger" id="hamburger">
-            <i class="fas fa-bars"></i>
+        <div class="nav-extra">
+            <button class="sidebar-toggle" id="sidebar-toggle-btn" aria-label="Menu">
+                <i class="fas fa-th-large"></i>
+            </button>
+            <div class="hamburger" id="hamburger">
+                <i class="fas fa-bars"></i>
+            </div>
         </div>
 
         <div class="nav-links" id="nav-links">
@@ -100,9 +123,9 @@
                     <p>I am <strong><em>Sarthak Bhattacharyya</em></strong>, who has been practicing Jyotiṣa as a childhood love with large research and analysis experience testing out various techniques. I am pursuing my B.Tech in Computer Science and Engineering from KIIT Deemed to be University (2023-2027). My readings are deeply rooted in the classical Pārāśarī tradition, balancing ancient wisdom with modern, practical application.</p>
                     
                     <div class="interests-box" style="margin-top: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.03); border-radius: 12px; border-left: 3px solid var(--accent-gold);">
-                        <h3 class="devnagari-style" style="font-size: 1.4rem; margin-bottom: 1rem; color: var(--accent-gold);">My Interests 💀</h3>
-                        <p style="font-size: 0.95rem; margin-bottom: 0.5rem;"><strong>Hobbies:</strong> Cinema, Indian Polity, Japanese Origami</p>
-                        <p style="font-size: 0.95rem;"><strong>Favorite Actor:</strong> Al Pacino</p>
+                        <h3 style="font-family: var(--font-body); font-weight: 800; font-size: 1.8rem; margin-bottom: 1.2rem; color: var(--accent-gold); letter-spacing: -0.5px;">My Interests 💀</h3>
+                        <p style="font-size: 0.95rem; margin-bottom: 0.5rem;"><strong>Hobbies:</strong> Cinema, Indian Polity, Global Geopolitics & Japanese Origami</p>
+                        <p style="font-size: 0.95rem;"><strong>Favorite Actors:</strong> Al Pacino, Jack Nicholson & Manoj Bajpayee</p>
                     </div>
                     
                     <div class="highlight-cards">
@@ -131,18 +154,18 @@
     </section>
 
     <!-- My Ishta Devta Section -->
-    <section class="ishta-devta section-padding" id="ishta-devta" style="background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('assets/ishta-devta.jpg'); background-size: cover; background-position: center; border-bottom: 2px solid var(--accent-gold);">
-        <div class="container" style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 4rem; align-items: center;">
-            <div style="border: 2px solid var(--accent-gold); border-radius: 20px; overflow: hidden; box-shadow: 0 0 40px rgba(255, 111, 0, 0.3);" data-aos="zoom-in">
-                <img src="assets/ishta-devta.jpg" alt="Lord Kartikeya" style="width: 100%; display: block;">
+    <section class="ishta-devta section-padding" id="ishta-devta">
+        <div class="container ishta-devta-container">
+            <div class="ishta-devta-image" data-aos="zoom-in">
+                <img src="assets/ishta-devta.jpg" alt="Lord Kartikeya">
             </div>
             <div class="ishta-devta-content" data-aos="fade-left">
-                <h2 class="devnagari-style" style="font-size: 3rem; margin-bottom: 1.5rem; color: var(--accent-gold); text-shadow: 0 0 15px rgba(212,175,55,0.4);">My Ishta Devta 🦚🏹</h2>
-                <div style="color: #f0f0f0; line-height: 1.8; font-size: 1.15rem;">
-                    <p style="margin-bottom: 1.2rem;">
+                <h2 class="devnagari-style">My Ishta Devta 🦚🏹</h2>
+                <div class="ishta-text">
+                    <p>
                         <strong>Lord Kārtikeya</strong>, also known as Skanda, Murugan, and Mahāsenā, is the eternal commander of the celestial army. Born from the sparks of Lord Shiva's third eye, he represents the supreme manifestation of consciousness and the ultimate victory of wisdom over ignorance.
                     </p>
-                    <p style="margin-bottom: 1.2rem;">
+                    <p>
                         In the spiritual evolution of the soul, Kārtikeya symbolizes the <strong>Vel (Divine Spear)</strong>—the razor-sharp intellect that pierces through the illusions of the material world. He is the guardian of the <em>Krittika</em> nakshatra energy, teaching us to focus our internal heat (Tapas) into a single-pointed direction to slay the demons of ego and vanity.
                     </p>
                     <p>
@@ -442,7 +465,7 @@
                     
                     <!-- My Roots - Ancestral Location -->
                     <div class="map-section" style="margin-top: 1.5rem;">
-                        <h4 style="color: var(--accent-gold); margin-bottom: 0.8rem; font-size: 1.1rem; font-family: 'Kalam', cursive;">My roots 💜</h4>
+                        <h4 style="color: var(--accent-gold); margin-bottom: 1rem; font-size: 1.5rem; font-family: var(--font-body); font-weight: 800; letter-spacing: -0.5px;">My roots 💜</h4>
                         <div class="map-wrapper" style="border-radius: 12px; overflow: hidden; border: 2px solid var(--accent-gold); height: 260px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); background: rgba(0,0,0,0.2);">
                             <iframe 
                                 src="https://maps.google.com/maps?q=21.276138,81.700066&t=&z=13&ie=UTF8&iwloc=&output=embed"
