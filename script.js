@@ -165,22 +165,6 @@ if (bookingForm) {
             return;
         }
         
-        // Generate UPI QR Code URL
-        const upiId = "sarthakbhattacharyyya-1@okaxis";
-        const upiName = "Sarthak Bhattacharyya";
-        const upiString = `upi://pay?pa=${upiId}&pn=${encodeURIComponent(upiName)}&am=${currentBookingData.price}&cu=INR`;
-        
-        // Use QR server to generate image for desktop
-        document.getElementById('upi-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiString)}`;
-        
-        // Mobile Deep Link Detection (If mobile, show tap-to-pay button)
-        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        if (isMobile) {
-            document.getElementById('mobile-pay-btn-container').style.display = 'block';
-            document.getElementById('mobile-pay-btn').href = upiString;
-            document.getElementById('desktop-qr-container').style.display = 'none';
-        }
-        
         // Populate Payment UI
         document.getElementById('pay-service-name').innerText = currentBookingData.service;
         document.getElementById('pay-amount').innerText = currentBookingData.price;
@@ -191,47 +175,53 @@ if (bookingForm) {
     });
 }
 
-// Payment Verification & WhatsApp Redirect Logic
-const verifyBtn = document.getElementById('verify-payment-btn');
-if (verifyBtn) {
-    verifyBtn.addEventListener('click', function() {
-        const utr = document.getElementById('utr-input').value.trim();
-        const screenshot = document.getElementById('payment-screenshot').files[0];
-        
-        if (!screenshot) {
-            alert("Payment Verification Failed: Please upload a screenshot of your transaction proof.");
-            return;
-        }
+// Proceed to Razorpay Payment Function
+function proceedToRazorpay() {
+    const btn = document.getElementById('razorpay-pay-btn');
+    if (!btn) return;
+    
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Initializing Checkout...';
+    btn.disabled = true;
 
-        if (utr.length < 12) {
-            alert("Payment Verification Failed: Please enter a valid 12-digit UTR or transaction reference number.");
-            return;
-        }
-        
-        // Hide gateway, show success message
-        paymentGateway.style.display = 'none';
-        formMessage.style.display = 'block';
-        
-        // Redirect to WhatsApp with payment proof
-        setTimeout(() => {
+    // Razorpay Integration Options
+    const options = {
+        "key": "YOUR_RAZORPAY_KEY_ID", // REPLACE THIS with your actual Key ID from Razorpay Dashboard
+        "amount": parseInt(currentBookingData.price) * 100, // Amount in paise (multiply by 100)
+        "currency": "INR",
+        "name": "GenZ Jyotiṣa",
+        "description": currentBookingData.service,
+        "image": "assets/zodiac.png",
+        "handler": function (response) {
+            // SUCCESS: Redirect to WhatsApp with Payment ID
             const waNumber = "919630958614";
-            const focusContext = currentBookingData.question ? `\n*Focus/Questions:* ${currentBookingData.question}` : "";
-            const coordsContext = (currentBookingData.pob_lat && currentBookingData.pob_lon) ? ` [Lat: ${parseFloat(currentBookingData.pob_lat).toFixed(4)}, Lon: ${parseFloat(currentBookingData.pob_lon).toFixed(4)}]` : "";
-            
-            const text = `Hari Om! I have completed my payment of ₹${currentBookingData.price} and am submitting my booking details.\n\n*Full Name:* ${currentBookingData.name}\n*Service:* ${currentBookingData.service}\n*Date of Birth:* ${currentBookingData.dob}\n*Time of Birth:* ${currentBookingData.tob}\n*Place of Birth:* ${currentBookingData.pob}${coordsContext}${focusContext}\n\n*Payment UTR:* ${utr}\n\n(I am attaching the payment screenshot to this message manually)`;
-            
-            const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(text)}`;
-            window.open(waLink, '_blank');
-        }, 1000);
-        
-        // Optional Backend Logging (Fails silently on static Vercel)
-        const dbFormData = new FormData();
-        Object.keys(currentBookingData).forEach(key => dbFormData.append(key, currentBookingData[key]));
-        dbFormData.append('utr', utr);
-        
-        fetch('/submit_booking', { method: 'POST', body: dbFormData })
-            .catch((error) => console.log("Backend not active, relying entirely on WhatsApp."));
-    });
+            const text = `Hari Om! I have successfully paid ₹${currentBookingData.price} for "${currentBookingData.service}" via Razorpay.\n\n*Payment ID:* ${response.razorpay_payment_id}\n\n*Booking Details:*\nName: ${currentBookingData.name}\nDOB: ${currentBookingData.dob}\nTOB: ${currentBookingData.tob}\nPOB: ${currentBookingData.pob}`;
+            window.location.href = `https://wa.me/${waNumber}?text=${encodeURIComponent(text)}`;
+        },
+        "prefill": {
+            "name": currentBookingData.name,
+            "email": currentBookingData.email,
+            "contact": currentBookingData.whatsapp
+        },
+        "theme": {
+            "color": "#C9A84C"
+        },
+        "modal": {
+            "ondismiss": function(){
+                btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay via Razorpay';
+                btn.disabled = false;
+            }
+        }
+    };
+
+    try {
+        const rzp = new Razorpay(options);
+        rzp.open();
+    } catch (e) {
+        console.error("Razorpay Error:", e);
+        alert("Razorpay is not loading. Please check your internet or retry.");
+        btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay via Razorpay';
+        btn.disabled = false;
+    }
 }
 
 // Place of Birth Autocomplete API (Free OpenStreetMap Nominatim)
@@ -420,3 +410,6 @@ if (document.readyState === 'loading') {
 } else {
     fetchBreakingNews();
 }
+
+// Auto-refresh news every 60 minutes for up-to-date headlines
+setInterval(fetchBreakingNews, 3600000);

@@ -1238,7 +1238,7 @@ input[type="date"]::-webkit-inner-spin-button {
 
 /* Ishta Devta Refined */
 .ishta-devta {
-    background: linear-gradient(rgba(13,13,43,0.9), rgba(13,13,43,0.9)), url('assets/ishta-devta.jpg');
+    background: linear-gradient(rgba(13,13,43,0.9), rgba(13,13,43,0.9)), url('assets/ishta-devta.png');
     background-size: cover;
     background-position: center;
     border-bottom: 2px solid var(--accent-gold);
@@ -1290,19 +1290,30 @@ input[type="date"]::-webkit-inner-spin-button {
 /* Mobile Adjustments for Better Image Visibility */
 @media (max-width: 768px) {
   .section-padding {
-    padding: 3rem 1.2rem;
+    padding: 3.5rem 1rem;
   }
   
   .ishta-devta-container, 
-  .gita-guidance .container {
+  .container {
     grid-template-columns: 1fr !important;
     text-align: center;
-    gap: 2.5rem !important;
+    gap: 3rem !important;
   }
 
-  .ishta-devta-image {
-    max-width: 300px;
+  .ishta-devta-image,
+  .gita-guidance div[style*="border"] {
+    max-width: 340px;
+    width: 90%;
     margin: 0 auto;
+    border-width: 1px !important;
+  }
+
+  .ishta-devta-image img,
+  .gita-guidance img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
   }
 
   .ishta-devta-content,
@@ -1311,7 +1322,8 @@ input[type="date"]::-webkit-inner-spin-button {
   }
 
   .ishta-devta h2, .gita-content h2 {
-    font-size: 2.2rem !important;
+    font-size: 2rem !important;
+    margin-bottom: 1rem !important;
   }
 
   .sidebar {
