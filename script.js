@@ -32,9 +32,16 @@ if (sidebarToggle) sidebarToggle.addEventListener('click', toggleSidebar);
 if (sidebarClose) sidebarClose.addEventListener('click', toggleSidebar);
 if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleSidebar);
 
-// Close sidebar on anchor clicks
+// Close sidebar on anchor clicks & handle special tab switching
 document.querySelectorAll('.sidebar-links a').forEach(link => {
-    link.addEventListener('click', () => {
+    link.addEventListener('click', (e) => {
+        const href = link.getAttribute('href');
+        
+        // Special handling for Krishna Chat sidebar link
+        if (href === '#gita-guidance') {
+            switchGitaTab('chat');
+        }
+        
         if (sidebar.classList.contains('active')) toggleSidebar();
     });
 });
@@ -393,11 +400,14 @@ async function fetchBreakingNews() {
         if (!response.ok) throw new Error('News API failure');
         const data = await response.json();
         
-        // Convert [Headline](URL) to <a> tags
-        const html = data.news.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a> • ');
+        // Convert [Headline](URL) to <a> tags - handle slightly varied markdown
+        const html = data.news.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank">✦ $1 ✦</a>');
+        
+        // Clean up separators like | or • if they exist
+        const cleanHtml = html.replace(/\|/g, ' • ');
         
         // Duplicate content for seamless scrolling
-        marquee.innerHTML = `<span>${html}</span> <span>${html}</span>`;
+        marquee.innerHTML = `<span>${cleanHtml}</span> <span>${cleanHtml}</span>`;
     } catch (error) {
         console.error("Breaking News Error:", error);
         marquee.innerHTML = '<span>✦ Celestial updates unfolding... ✦ Spiritual wisdom is eternal... ✦ Stay tuned for more ✦</span>';

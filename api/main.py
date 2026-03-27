@@ -167,8 +167,12 @@ def gita_recommend():
     prompt = f"User feeling: {user_input}\n\nVerses:\n{verses_text}\n\nWrite 3-4 gentle sentences explaining how these Gita verses help. Be compassionate."
     try:
         insight = chat_model.generate_content(prompt).text
-    except:
-        insight = "May the wisdom of the Gita bring you peace."
+    except Exception as e:
+        error_detail = str(e)
+        if "API_KEY_INVALID" in error_detail or "expired" in error_detail.lower():
+            insight = "O Arjuna, the divine connection is disturbed. (Your API Key appears to be invalid or expired. Please update it in your Vercel Environment Variables.)"
+        else:
+            insight = f"May the wisdom of the Gita bring you peace. (Network/API Detail: {error_detail})"
     return jsonify({"verses": results, "insight": insight})
 
 @app.route('/api/gita/chat', methods=['POST'])
@@ -188,20 +192,31 @@ def gita_chat():
                 shlokas.append({"reference": f"BG {ch}.{vs}", "slok": s['slok'], "transliteration": s['transliteration']})
         return jsonify({"response": text, "shlokas": shlokas})
     except Exception as e:
-        print(f"Chatbot Error: {e}")
-        return jsonify({"response": f"O Arjuna, the divine connection is weak. (Detail: {str(e)})", "shlokas": []}), 500
+        error_detail = str(e)
+        msg = "O Arjuna, the divine connection is weak. "
+        if "API_KEY_INVALID" in error_detail or "expired" in error_detail.lower():
+            msg += "(Your Google API Key appears to be invalid or expired. Please update it in your environment variables/Vercel settings.)"
+        else:
+            msg += f"(Detail: {error_detail})"
+        return jsonify({"response": msg, "shlokas": []}), 500
 
 @app.route('/api/news', methods=['GET'])
 def get_news():
-    prompt = "Provide the top 5 most popular global news headlines for today with their source URLs. Be specific and accurate. Format: [Headline](URL) | [Headline](URL) | [Headline](URL) ..."
     try:
-        # Use grounding for daily news
+        # Use grounding for daily news with professional formatting
+        prompt = (
+            "Provide the 5 most popular global news headlines related to Spirituality, Vedic Astrology, "
+            "Cosmic Science, or Ancient Traditions for today. Each headline MUST be a valid markdown link. "
+            "Format: [Headline Text](URL) | [Headline Text](URL) | [Headline Text](URL) ..."
+        )
         response = chat_model.generate_content(prompt)
         news_text = response.text
         return jsonify({"news": news_text})
     except Exception as e:
-        print(f"News Fetch Error: {e}")
-        return jsonify({"news": "✦ Celestial events unfolding... ✦ Spiritual wisdom is eternal... ✦ Stay tuned for more ✦"})
+        error_msg = str(e)
+        if "API_KEY_INVALID" in error_msg or "400" in error_msg:
+            print(f"CRITICAL: API Key Issue. Please update GOOGLE_API_KEY in Vercel settings.")
+        return jsonify({"news": "✦ Spiritual wisdom is eternal... ✦ Celestial events unfolding... ✦ Please ensure your divine connection (API Key) is active! ✦"})
 
 # Vercel entry point
 # No app.run() needed here for production
