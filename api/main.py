@@ -9,8 +9,14 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import re
 import requests
+import razorpay
 
 app = Flask(__name__, static_folder=".", static_url_path="")
+
+# Razorpay Client Initialization
+RAZORPAY_KEY_ID = "rzp_test_SWEFJ7XQd5AYV3"
+RAZORPAY_SECRET = "NGgLFiD1ZyXPpSgKfPO4TNx1"
+razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_SECRET))
 
 # --- Vercel Path Configuration ---
 # Vercel functions run with /api as the working directory sometimes, or the root.
@@ -60,7 +66,7 @@ except Exception as e:
     gita_df = None
 
 # Configure Gemini
-GENAI_API_KEY = os.getenv("GOOGLE_API_KEY")
+GENAI_API_KEY = os.getenv("GOOGLE_API_KEY", "AIzaSyAY7Wt5KcCMEztj8MGBwHZIPZIXyvgx624")
 if not GENAI_API_KEY:
     print("WARNING: GOOGLE_API_KEY not found in environment variables!")
 else:
@@ -68,24 +74,18 @@ else:
 
 genai.configure(api_key=GENAI_API_KEY)
 
-# Use Google Search Retrieval tool for internet connectivity
-tools = [{"google_search_retrieval": {}}]
-
 chat_model = genai.GenerativeModel(
-    "gemini-1.5-flash",
-    tools=tools
+    "gemini-1.5-flash"
 )
 
 krishna_model = genai.GenerativeModel(
     "gemini-1.5-flash",
-    tools=tools,
     system_instruction="""You are Lord Krishna, the supreme speaker of the Bhagavad Gita. Address the user as "O Arjuna".
-Your purpose is to provide divine guidance, emotional support, and spiritual clarity using both the timeless wisdom of the Gita and the vastness of the modern world (via internet data).
+Your purpose is to provide divine guidance, emotional support, and spiritual clarity using both the timeless wisdom of the Gita and the vastness of the modern world.
 Always speak with profound wisdom, boundless compassion, and supreme authority.
 Reference exact [BG Chapter.Verse] numbers when relevant to the Gita's teachings.
 Emphasize the path of Karma Yoga (selfless action), Bhakti Yoga (devotion), and Jnana Yoga (wisdom).
-Keep responses within 3-6 sentences. Remain in character as the eternal Guru and Friend.
-You have access to the internet, so you can answer modern questions with spiritual depth."""
+Keep responses within 3-6 sentences. Remain in character as the eternal Guru and Friend."""
 )
 
 def fetch_sanskrit(chapter, verse):
@@ -113,6 +113,39 @@ def serve_static_files(path):
     if os.path.exists(os.path.join(BASE_DIR, path)):
         return send_from_directory(BASE_DIR, path)
     return "File not found", 404
+
+@app.route('/api/create_order', methods=['POST'])
+def create_order():
+    try:
+        data = request.json
+        amount = int(data.get('amount', 0)) * 100  # Convert to paise
+        currency = "INR"
+        
+        if amount <= 0:
+            return jsonify({"status": "error", "message": "Invalid amount"}), 400
+            
+        order_receipt = f"rcptid_{int(datetime.now().timestamp())}"
+        
+        order_data = {
+            "amount": amount,
+            "currency": currency,
+            "receipt": order_receipt,
+            "payment_capture": 1 # Auto capture
+        }
+        
+        # Create order with Razorpay
+        razorpay_order = razorpay_client.order.create(data=order_data)
+        
+        return jsonify({
+            "status": "success",
+            "order_id": razorpay_order['id'],
+            "amount": razorpay_order['amount'],
+            "currency": razorpay_order['currency']
+        }), 200
+        
+    except Exception as e:
+        print(f"Razorpay Order Creation Error: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/submit_booking', methods=['POST'])
 def submit_booking():
@@ -203,14 +236,30 @@ def gita_chat():
 @app.route('/api/news', methods=['GET'])
 def get_news():
     try:
-        # Use grounding for daily news with professional formatting
+        # The user requested live, clickable links. We'll use the raw REST API with googleSearchRetrieval 
+        # to ensure it works properly bypassing any python SDK limitations.
         prompt = (
-            "Provide the 5 most popular global news headlines related to Spirituality, Vedic Astrology, "
-            "Cosmic Science, or Ancient Traditions for today. Each headline MUST be a valid markdown link. "
+            "Provide the 5 most popular global breaking news headlines for today. "
+            "Each headline MUST be a valid markdown link. "
             "Format: [Headline Text](URL) | [Headline Text](URL) | [Headline Text](URL) ..."
         )
-        response = chat_model.generate_content(prompt)
-        news_text = response.text
+        
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GENAI_API_KEY}"
+        headers = {'Content-Type': 'application/json'}
+        payload = {
+            "contents": [{"parts": [{"text": prompt}]}],
+            "tools": [{"googleSearchRetrieval": {}}]
+        }
+        
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+        
+        data = response.json()
+        news_text = data.get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', '')
+        
+        if not news_text:
+            raise ValueError("Empty response from API")
+            
         return jsonify({"news": news_text})
     except Exception as e:
         error_msg = str(e)

@@ -8,11 +8,11 @@ AOS.init({
 
 // Register Service Worker for PWA (Installable App)
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then(registration => console.log('ServiceWorker registered'))
-      .catch(err => console.log('ServiceWorker failed: ', err));
-  });
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+            .then(registration => console.log('ServiceWorker registered'))
+            .catch(err => console.log('ServiceWorker failed: ', err));
+    });
 }
 
 // Sidebar Toggle Logic
@@ -36,12 +36,12 @@ if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleSidebar);
 document.querySelectorAll('.sidebar-links a').forEach(link => {
     link.addEventListener('click', (e) => {
         const href = link.getAttribute('href');
-        
+
         // Special handling for Krishna Chat sidebar link
         if (href === '#gita-guidance') {
             switchGitaTab('chat');
         }
-        
+
         if (sidebar.classList.contains('active')) toggleSidebar();
     });
 });
@@ -60,11 +60,11 @@ window.addEventListener('scroll', () => {
 const hamburger = document.getElementById('hamburger');
 const navLinks = document.getElementById('nav-links');
 
-if(hamburger) {
+if (hamburger) {
     hamburger.addEventListener('click', () => {
         navLinks.classList.toggle('active');
         const icon = hamburger.querySelector('i');
-        if(navLinks.classList.contains('active')) {
+        if (navLinks.classList.contains('active')) {
             icon.classList.remove('fa-bars');
             icon.classList.add('fa-times');
         } else {
@@ -80,7 +80,7 @@ faqQuestions.forEach(question => {
     question.addEventListener('click', () => {
         const answer = question.nextElementSibling;
         const isActive = question.classList.contains('active');
-        
+
         // Close all other FAQs
         faqQuestions.forEach(q => {
             q.classList.remove('active');
@@ -104,18 +104,18 @@ if (bookingForm) {
     // DOB Auto-formatting (DD/MM/YYYY)
     const dobInput = document.getElementById('dob-input');
     const tobInput = document.getElementById('tob-input');
-    
-    dobInput.addEventListener('input', function(e) {
+
+    dobInput.addEventListener('input', function (e) {
         let val = this.value.replace(/\D/g, '');
         if (val.length > 8) val = val.slice(0, 8);
-        
+
         let formatted = '';
         if (val.length > 0) formatted += val.slice(0, 2);
         if (val.length > 2) formatted += ' / ' + val.slice(2, 4);
         if (val.length > 4) formatted += ' / ' + val.slice(4, 8);
-        
+
         this.value = formatted;
-        
+
         // Auto-focus to Time of Birth once DOB is complete
         if (val.length === 8) {
             setTimeout(() => tobInput.focus(), 100);
@@ -123,28 +123,28 @@ if (bookingForm) {
     });
 
     // TOB Auto-formatting (HH:MM:SS)
-    tobInput.addEventListener('input', function(e) {
+    tobInput.addEventListener('input', function (e) {
         let val = this.value.replace(/\D/g, '');
         if (val.length > 6) val = val.slice(0, 6);
-        
+
         let formatted = '';
         if (val.length > 0) formatted += val.slice(0, 2);
         if (val.length > 2) formatted += ' : ' + val.slice(2, 4);
         if (val.length > 4) formatted += ' : ' + val.slice(4, 6);
-        
+
         this.value = formatted;
     });
 
-    bookingForm.addEventListener('submit', function(e) {
+    bookingForm.addEventListener('submit', function (e) {
         e.preventDefault();
-        
+
         const formData = new FormData(bookingForm);
         const serviceSelect = document.getElementById('service-select');
         const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
-        
+
         currentBookingData = {
             name: formData.get('name'),
-            service: selectedOption.textContent.split(' - ')[0], 
+            service: selectedOption.textContent.split(' - ')[0],
             price: selectedOption.getAttribute('data-price'),
             dob: formData.get('dob'),
             tob: formData.get('tob') + ' ' + formData.get('ampm'),
@@ -153,22 +153,22 @@ if (bookingForm) {
             pob_lon: formData.get('pob_lon'),
             question: formData.get('question')
         };
-        
+
         if (!currentBookingData.price || currentBookingData.price === "0") {
             alert("Please select a valid service.");
             return;
         }
-        
+
         // Strict Validation for Time of Birth (Since we use a select for AM/PM now, only check format)
         if (currentBookingData.dob.length < 14 || currentBookingData.tob.length < 11) {
             alert("Please provide complete Birth Date and Time.");
             return;
         }
-        
+
         // Populate Payment UI
         document.getElementById('pay-service-name').innerText = currentBookingData.service;
         document.getElementById('pay-amount').innerText = currentBookingData.price;
-        
+
         // Swap Views
         bookingForm.style.display = 'none';
         paymentGateway.style.display = 'block';
@@ -176,49 +176,73 @@ if (bookingForm) {
 }
 
 // Proceed to Razorpay Payment Function
-function proceedToRazorpay() {
+async function proceedToRazorpay() {
     const btn = document.getElementById('razorpay-pay-btn');
     if (!btn) return;
-    
+
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Initializing Checkout...';
     btn.disabled = true;
 
-    // Razorpay Integration Options
-    const options = {
-        "key": "YOUR_RAZORPAY_KEY_ID", // REPLACE THIS with your actual Key ID from Razorpay Dashboard
-        "amount": parseInt(currentBookingData.price) * 100, // Amount in paise (multiply by 100)
-        "currency": "INR",
-        "name": "GenZ Jyotiṣa",
-        "description": currentBookingData.service,
-        "image": "assets/zodiac.png",
-        "handler": function (response) {
-            // SUCCESS: Redirect to WhatsApp with Payment ID
-            const waNumber = "919630958614";
-            const text = `Hari Om! I have successfully paid ₹${currentBookingData.price} for "${currentBookingData.service}" via Razorpay.\n\n*Payment ID:* ${response.razorpay_payment_id}\n\n*Booking Details:*\nName: ${currentBookingData.name}\nDOB: ${currentBookingData.dob}\nTOB: ${currentBookingData.tob}\nPOB: ${currentBookingData.pob}`;
-            window.location.href = `https://wa.me/${waNumber}?text=${encodeURIComponent(text)}`;
-        },
-        "prefill": {
-            "name": currentBookingData.name,
-            "email": currentBookingData.email,
-            "contact": currentBookingData.whatsapp
-        },
-        "theme": {
-            "color": "#C9A84C"
-        },
-        "modal": {
-            "ondismiss": function(){
-                btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay via Razorpay';
-                btn.disabled = false;
-            }
-        }
-    };
-
     try {
+        // 1. Fetch Order ID from Backend
+        const response = await fetch('/api/create_order', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                amount: currentBookingData.price,
+                service: currentBookingData.service
+            })
+        });
+        
+        const orderData = await response.json();
+        
+        if (orderData.status !== 'success') {
+            throw new Error(orderData.message || "Failed to create order");
+        }
+
+        // 2. Razorpay Integration Options
+        const options = {
+            "key": "rzp_test_SWEFJ7XQd5AYV3", // Backend creates the order, Frontend still needs the key to load the UI
+            "amount": orderData.amount, // Amount in paise from backend
+            "currency": orderData.currency,
+            "name": "GenZ Jyotiṣa",
+            "description": currentBookingData.service,
+            "image": "assets/zodiac.png",
+            "order_id": orderData.order_id, // Pass the newly generated order ID
+            "handler": function (response) {
+                // SUCCESS: Redirect to WhatsApp with Payment ID
+                const waNumber = "919630958614";
+                const text = `Hari Om! I have successfully paid ₹${currentBookingData.price} for "${currentBookingData.service}".\n\n*Payment ID:* ${response.razorpay_payment_id}\n*Order ID:* ${response.razorpay_order_id}\n\n*Booking Details:*\nName: ${currentBookingData.name}\nDOB: ${currentBookingData.dob}\nTOB: ${currentBookingData.tob}\nPOB: ${currentBookingData.pob}`;
+                window.location.href = `https://wa.me/${waNumber}?text=${encodeURIComponent(text)}`;
+            },
+            "prefill": {
+                "name": currentBookingData.name,
+                "email": currentBookingData.email,
+                "contact": currentBookingData.whatsapp
+            },
+            "theme": {
+                "color": "#C9A84C"
+            },
+            "modal": {
+                "ondismiss": function () {
+                    btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay via Razorpay';
+                    btn.disabled = false;
+                }
+            }
+        };
+
         const rzp = new Razorpay(options);
+        rzp.on('payment.failed', function (response) {
+            alert("Payment failed! Please try again. (" + response.error.description + ")");
+            btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay via Razorpay';
+            btn.disabled = false;
+        });
         rzp.open();
     } catch (e) {
         console.error("Razorpay Error:", e);
-        alert("Razorpay is not loading. Please check your internet or retry.");
+        alert("Razorpay implementation is currently experiencing issues. Please try again. " + e.message);
         btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay via Razorpay';
         btn.disabled = false;
     }
@@ -233,15 +257,15 @@ const pobLon = document.getElementById('pob-lon');
 let debounceTimer;
 
 if (pobInput) {
-    pobInput.addEventListener('input', function() {
+    pobInput.addEventListener('input', function () {
         clearTimeout(debounceTimer);
         const query = this.value.trim();
-        
+
         if (query.length < 3) {
             pobDropdown.style.display = 'none';
             return;
         }
-        
+
         debounceTimer = setTimeout(() => {
             fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=5`, {
                 headers: { 'Accept-Language': 'en-US,en;q=0.9' }
@@ -258,12 +282,12 @@ if (pobInput) {
                             option.style.fontSize = '16px';
                             option.style.color = 'var(--text-primary)';
                             option.style.lineHeight = '1.4';
-                            
+
                             option.addEventListener('mouseover', () => option.style.background = 'rgba(201,168,76,0.1)');
                             option.addEventListener('mouseout', () => option.style.background = 'transparent');
-                            
+
                             option.innerText = place.display_name;
-                            
+
                             // Pointerdown acts instantly on mobile (before blur logic destroys the menu)
                             option.addEventListener('pointerdown', (e) => {
                                 e.preventDefault(); // Prevents keyboard from immediately closing if active
@@ -272,7 +296,7 @@ if (pobInput) {
                                 pobLon.value = place.lon;
                                 pobDropdown.style.display = 'none';
                             });
-                            
+
                             pobDropdown.appendChild(option);
                         });
                         pobDropdown.style.display = 'block';
@@ -288,7 +312,7 @@ if (pobInput) {
     });
 
     // Close dropdown instantly when clicking/tapping elsewhere
-    document.addEventListener('pointerdown', function(e) {
+    document.addEventListener('pointerdown', function (e) {
         if (pobInput && pobDropdown && e.target !== pobInput && !pobDropdown.contains(e.target)) {
             pobDropdown.style.display = 'none';
         }
@@ -307,7 +331,7 @@ function switchGitaTab(tab) {
     activeBtn.classList.add('active');
     activeBtn.style.color = 'var(--accent-gold)';
     activeBtn.style.borderBottom = '2px solid var(--accent-gold)';
-    
+
     document.getElementById('gita-verses-ui').style.display = tab === 'verses' ? 'block' : 'none';
     document.getElementById('gita-chat-ui').style.display = tab === 'chat' ? 'block' : 'none';
 }
@@ -315,19 +339,19 @@ function switchGitaTab(tab) {
 async function getGitaGuidance() {
     const input = document.getElementById('feeling-input');
     const query = input.value.trim();
-    if(!query) return;
-    
+    if (!query) return;
+
     const resultsDiv = document.getElementById('gita-guidance-results');
     resultsDiv.innerHTML = '<p style="text-align:center; padding:1rem; opacity:0.8;">Seeking divine wisdom... 🙏</p>';
-    
+
     try {
         const res = await fetch('/api/gita/recommend', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({query})
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query })
         });
         const data = await res.json();
-        
+
         let html = `<div style="background:rgba(255,255,255,0.05); padding:1rem; border-radius:8px; margin-bottom:1rem; border-left:3px solid var(--accent-gold); font-style:italic;">"${data.insight}"</div>`;
         data.verses.forEach(v => {
             html += `
@@ -352,26 +376,26 @@ let gitaChatHistory = [];
 async function sendGitaChat() {
     const input = document.getElementById('gita-chat-input');
     const message = input.value.trim();
-    if(!message) return;
-    
+    if (!message) return;
+
     const window = document.getElementById('gita-chat-window');
     window.innerHTML += `<div style="text-align:right; margin-bottom:1rem; color:#fff;"><strong>You:</strong> ${message}</div>`;
     input.value = '';
     window.scrollTop = window.scrollHeight;
-    
+
     try {
         const res = await fetch('/api/gita/chat', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({message, history: gitaChatHistory})
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message, history: gitaChatHistory })
         });
         const data = await res.json();
-        
+
         window.innerHTML += `<div style="margin-bottom:1rem; color:var(--accent-gold);"><strong>Lord Krishna:</strong> ${data.response}</div>`;
         window.scrollTop = window.scrollHeight;
-        
-        gitaChatHistory.push({role: "user", parts: [{text: message}]});
-        gitaChatHistory.push({role: "model", parts: [{text: data.response}]});
+
+        gitaChatHistory.push({ role: "user", parts: [{ text: message }] });
+        gitaChatHistory.push({ role: "model", parts: [{ text: data.response }] });
     } catch (e) {
         console.error("Krishna Chat Error:", e);
         window.innerHTML += `<div style="color:var(--accent-burgundy); margin-top:0.5rem; font-style:italic;">"O Arjuna, the divine link is weak. Stay patient and seek again."</div>`;
@@ -384,18 +408,18 @@ async function sendGitaChat() {
 async function fetchBreakingNews() {
     const marquee = document.getElementById('news-content-marquee');
     if (!marquee) return;
-    
+
     try {
         const response = await fetch('/api/news');
         if (!response.ok) throw new Error('News API failure');
         const data = await response.json();
-        
+
         // Convert [Headline](URL) to <a> tags - handle slightly varied markdown
         const html = data.news.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank">✦ $1 ✦</a>');
-        
+
         // Clean up separators like | or • if they exist
         const cleanHtml = html.replace(/\|/g, ' • ');
-        
+
         // Duplicate content for seamless scrolling
         marquee.innerHTML = `<span>${cleanHtml}</span> <span>${cleanHtml}</span>`;
     } catch (error) {
