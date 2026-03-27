@@ -341,12 +341,32 @@
         <div class="container" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 4rem; align-items: center;">
              <div class="gita-content" data-aos="fade-left">
                 <h2 class="devnagari-style" style="font-size: 2.5rem; margin-bottom: 1.5rem; color: var(--accent-gold);">Bhagavad Gītā Guidance</h2>
-                <p style="font-size: 1.1rem; margin-bottom: 2rem; line-height: 1.7;">
-                    Interact with our internal **Lord Krishna Chatbot** to get personal guidance straight from the authentic verses of the Bhagavad Gita. Experience divine wisdom tailored to your modern life.
-                </p>
-                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                    <a href="gita.html" class="btn btn-primary">✨ Consult the Gita</a>
-                    <a href="gita.html" class="btn btn-secondary"><i class="fas fa-comment-dots"></i> Talk to Krishna</a>
+                
+                <!-- Integrated Tabs -->
+                <div class="gita-tabs" style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid rgba(255,213,79,0.2);">
+                    <button class="gita-tab-btn active" onclick="switchGitaTab('verses')" style="background:none; border:none; border-bottom: 2px solid var(--accent-gold); color:var(--accent-gold); padding:0.5rem 1rem; cursor:pointer;">🕉️ Guidance</button>
+                    <button class="gita-tab-btn" onclick="switchGitaTab('chat')" style="background:none; border:none; color:#b0a4d4; padding:0.5rem 1rem; cursor:pointer;">🙏 Chat</button>
+                </div>
+
+                <!-- Verse Guidance Content -->
+                <div id="gita-verses-ui">
+                    <p style="margin-bottom: 1.5rem; line-height: 1.6;">How are you feeling today? Seek wisdom for your dilemma.</p>
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                        <input type="text" id="feeling-input" placeholder="e.g. I feel lost in my career..." style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(139,92,246,0.3); color:white; padding:0.8rem; border-radius:8px;">
+                        <button class="btn btn-primary" onclick="getGitaGuidance()" style="padding:0 1.5rem;">✨ Ask</button>
+                    </div>
+                    <div id="gita-guidance-results" style="max-height: 300px; overflow-y: auto;"></div>
+                </div>
+
+                <!-- Chatbot Content -->
+                <div id="gita-chat-ui" style="display: none;">
+                    <div id="gita-chat-window" style="height: 250px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; font-size: 0.95rem; border: 1px solid rgba(139,92,246,0.1);">
+                        <div style="color:var(--accent-gold); margin-bottom:0.5rem;">🙏 Lord Krishna: Welcome, Arjuna. What doubts cloud your mind?</div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" id="gita-chat-input" placeholder="Ask Krishna..." onkeypress="if(event.key==='Enter') sendGitaChat()" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(139,92,246,0.3); color:white; padding:0.8rem; border-radius:8px;">
+                        <button class="btn btn-primary" onclick="sendGitaChat()"><i class="fas fa-paper-plane"></i></button>
+                    </div>
                 </div>
             </div>
             <div style="border: 2px solid var(--accent-gold); border-radius: 15px; overflow: hidden; box-shadow: 0 0 30px rgba(212,175,55,0.2);" data-aos="zoom-in">

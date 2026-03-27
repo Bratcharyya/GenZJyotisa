@@ -284,3 +284,81 @@ if (pobInput) {
         }
     });
 }
+
+// --- Bhagavad Gita Integrated Logic ---
+
+function switchGitaTab(tab) {
+    document.querySelectorAll('.gita-tab-btn').forEach(b => {
+        b.classList.remove('active');
+        b.style.color = '#b0a4d4';
+        b.style.borderBottom = 'none';
+    });
+    const activeBtn = document.querySelector(`button[onclick="switchGitaTab('${tab}')"]`);
+    activeBtn.classList.add('active');
+    activeBtn.style.color = 'var(--accent-gold)';
+    activeBtn.style.borderBottom = '2px solid var(--accent-gold)';
+    
+    document.getElementById('gita-verses-ui').style.display = tab === 'verses' ? 'block' : 'none';
+    document.getElementById('gita-chat-ui').style.display = tab === 'chat' ? 'block' : 'none';
+}
+
+async function getGitaGuidance() {
+    const input = document.getElementById('feeling-input');
+    const query = input.value.trim();
+    if(!query) return;
+    
+    const resultsDiv = document.getElementById('gita-guidance-results');
+    resultsDiv.innerHTML = '<p style="text-align:center; padding:1rem; opacity:0.8;">Seeking divine wisdom... 🙏</p>';
+    
+    try {
+        const res = await fetch('/api/gita/recommend', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({query})
+        });
+        const data = await res.json();
+        
+        let html = `<div style="background:rgba(255,255,255,0.05); padding:1rem; border-radius:8px; margin-bottom:1rem; border-left:3px solid var(--accent-gold); font-style:italic;">"${data.insight}"</div>`;
+        data.verses.forEach(v => {
+            html += `
+                <div style="margin-bottom:1.5rem; padding-bottom:1rem; border-bottom:1px solid rgba(255,213,79,0.1);">
+                    <strong style="color:var(--accent-gold); display:block; margin-bottom:0.5rem;">${v.reference}</strong>
+                    <p style="font-size:0.95rem; line-height:1.5;">${v.text}</p>
+                </div>
+            `;
+        });
+        resultsDiv.innerHTML = html;
+        input.value = '';
+    } catch (e) {
+        resultsDiv.innerHTML = '<p>Connection failed. Sri Krishna awaits your patience.</p>';
+    }
+}
+
+let gitaChatHistory = [];
+async function sendGitaChat() {
+    const input = document.getElementById('gita-chat-input');
+    const message = input.value.trim();
+    if(!message) return;
+    
+    const window = document.getElementById('gita-chat-window');
+    window.innerHTML += `<div style="text-align:right; margin-bottom:1rem; color:#fff;"><strong>You:</strong> ${message}</div>`;
+    input.value = '';
+    window.scrollTop = window.scrollHeight;
+    
+    try {
+        const res = await fetch('/api/gita/chat', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({message, history: gitaChatHistory})
+        });
+        const data = await res.json();
+        
+        window.innerHTML += `<div style="margin-bottom:1rem; color:var(--accent-gold);"><strong>Lord Krishna:</strong> ${data.response}</div>`;
+        window.scrollTop = window.scrollHeight;
+        
+        gitaChatHistory.push({role: "user", parts: [{text: message}]});
+        gitaChatHistory.push({role: "model", parts: [{text: data.response}]});
+    } catch (e) {
+        window.innerHTML += `<div style="color:var(--accent-burgundy);">O Arjuna, the connection is weak. Ask again.</div>`;
+    }
+}
