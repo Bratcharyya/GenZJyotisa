@@ -1,4 +1,4 @@
-const CACHE_NAME = 'genz-jy-v12';
+const CACHE_NAME = 'genz-jy-v13';
 const urlsToCache = [
   '/',
   '/index.html',
