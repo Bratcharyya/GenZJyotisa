@@ -16,9 +16,22 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- AOS for Animations -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Breaking News Marquee -->
+    <div class="news-marquee-container">
+        <div class="news-header">
+            <i class="fas fa-bolt"></i> BREAKING NEWS
+        </div>
+        <div class="news-track">
+            <div class="news-content">
+                <span>✦ Sensex and Nifty hit record highs as inflation eases globally ✦ New breakthrough in solar energy efficiency reported ✦ Major cultural festival kicks off in New Delhi ✦ AI researchers announce milestone in language understanding ✦ Mars rover finds new evidence of ancient water ✦</span>
+                <span>✦ Sensex and Nifty hit record highs as inflation eases globally ✦ New breakthrough in solar energy efficiency reported ✦ Major cultural festival kicks off in New Delhi ✦ AI researchers announce milestone in language understanding ✦ Mars rover finds new evidence of ancient water ✦</span>
+            </div>
+        </div>
+    </div>
 
     <!-- Navigation -->
     <nav class="navbar" id="navbar">
@@ -86,6 +99,12 @@
                     <h3><strong><em>Sarthak Bhattacharyya</em></strong></h3>
                     <p>I am <strong><em>Sarthak Bhattacharyya</em></strong>, who has been practicing Jyotiṣa as a childhood love with large research and analysis experience testing out various techniques. I am pursuing my B.Tech in Computer Science and Engineering from KIIT Deemed to be University (2023-2027). My readings are deeply rooted in the classical Pārāśarī tradition, balancing ancient wisdom with modern, practical application.</p>
                     
+                    <div class="interests-box" style="margin-top: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.03); border-radius: 12px; border-left: 3px solid var(--accent-gold);">
+                        <h3 class="devnagari-style" style="font-size: 1.4rem; margin-bottom: 1rem; color: var(--accent-gold);">My Interests 💀</h3>
+                        <p style="font-size: 0.95rem; margin-bottom: 0.5rem;"><strong>Hobbies:</strong> Cinema, Indian Polity, Japanese Origami</p>
+                        <p style="font-size: 0.95rem;"><strong>Favorite Actor:</strong> Al Pacino</p>
+                    </div>
+                    
                     <div class="highlight-cards">
                         <div class="highlight-card">
                             <span>Years of Practice</span>
@@ -111,11 +130,44 @@
         </div>
     </section>
 
+    <!-- My Ishta Devta Section -->
+    <section class="ishta-devta section-padding" id="ishta-devta" style="background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('assets/ishta-devta.jpg'); background-size: cover; background-position: center; border-bottom: 2px solid var(--accent-gold);">
+        <div class="container" style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 4rem; align-items: center;">
+            <div style="border: 2px solid var(--accent-gold); border-radius: 20px; overflow: hidden; box-shadow: 0 0 40px rgba(255, 111, 0, 0.3);" data-aos="zoom-in">
+                <img src="assets/ishta-devta.jpg" alt="Lord Kartikeya" style="width: 100%; display: block;">
+            </div>
+            <div data-aos="fade-left">
+                <h2 class="devnagari-style" style="font-size: 3rem; margin-bottom: 1.5rem; color: var(--accent-gold); text-shadow: 0 0 15px rgba(212,175,55,0.4);">My Ishta Devta 🦚🏹</h2>
+                <div style="color: #f0f0f0; line-height: 1.8; font-size: 1.15rem;">
+                    <p style="margin-bottom: 1.2rem;">
+                        <strong>Lord Kārtikeya</strong>, also known as Skanda, Murugan, and Mahāsenā, is the eternal commander of the celestial army. Born from the sparks of Lord Shiva's third eye, he represents the supreme manifestation of consciousness and the ultimate victory of wisdom over ignorance.
+                    </p>
+                    <p style="margin-bottom: 1.2rem;">
+                        In the spiritual evolution of the soul, Kārtikeya symbolizes the <strong>Vel (Divine Spear)</strong>—the razor-sharp intellect that pierces through the illusions of the material world. He is the guardian of the <em>Krittika</em> nakshatra energy, teaching us to focus our internal heat (Tapas) into a single-pointed direction to slay the demons of ego and vanity.
+                    </p>
+                    <p>
+                        Riding upon a peacock, which represents the human ego and fickle mind conquered, he leads the soul from the battlefield of confusion to the heights of spiritual clarity. For me, he is the source of strength, discipline, and the unwavering light of the inner sun.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Services Section -->
     <section class="services section-padding" id="services">
         <div class="container">
             <h2 class="section-title" data-aos="fade-up">Consultations</h2>
             <div class="services-grid">
+                <div class="service-card" data-aos="zoom-in" data-aos-delay="50">
+                    <i class="fas fa-bolt service-icon"></i>
+                    <h3>Quick Consultation</h3>
+                    <p>Brief analysis for urgent queries or single-question focus.</p>
+                    <div class="service-meta">
+                        <span class="duration"><i class="far fa-clock"></i> 30 min</span>
+                        <span class="price">₹309</span>
+                    </div>
+                </div>
+
                 <!-- Service 1 -->
                 <div class="service-card" data-aos="zoom-in" data-aos-delay="100">
                     <i class="fas fa-star-and-crescent service-icon"></i>
@@ -211,7 +263,7 @@
                     <div class="timeline-dot">3</div>
                     <div class="timeline-content">
                         <h3>Complete Payment</h3>
-                        <p>Pay ₹501 or ₹1001 securely via UPI.</p>
+                        <p>Pay ₹309, ₹501 or ₹1001 securely via UPI.</p>
                     </div>
                 </div>
                 <div class="timeline-item" data-aos="fade-left" data-aos-delay="400">
@@ -275,6 +327,61 @@
     </section>
     -->
 
+    <!-- Calculate Kundli Section -->
+    <section class="kundli-segment" style="background: linear-gradient(135deg, rgba(30, 11, 14, 0.9), rgba(64, 13, 22, 0.9)); padding: 4rem 1rem; text-align: center; border-top: 1px solid var(--accent-gold); border-bottom: 1px solid var(--accent-gold);">
+        <div class="container">
+            <h2 class="devnagari-style" style="font-size: 2.5rem; margin-bottom: 1.5rem; color: var(--accent-gold); text-shadow: 0 0 10px rgba(212,175,55,0.4);">Calculate Your Own Kundli</h2>
+            <p style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">Generate a comprehensive birth chart immediately using the world's most precise calculation engine.</p>
+            <a href="https://deva.guru" target="_blank" class="btn btn-outline" style="font-family: 'Kalam', cursive; font-size: 1.3rem;">Launch Deva.Guru <i class="fas fa-external-link-alt"></i></a>
+        </div>
+    </section>
+
+    <!-- Gita Guidance Section -->
+    <section class="gita-guidance section-padding" style="background: linear-gradient(rgba(13,13,43,0.85), rgba(13,13,43,0.85)), url('assets/gita-guidance.jpg'); background-size: cover; background-position: center; border-bottom: 2px solid var(--accent-gold);">
+        <div class="container" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 4rem; align-items: center;">
+             <div class="gita-content" data-aos="fade-left">
+                <h2 class="devnagari-style" style="font-size: 2.5rem; margin-bottom: 1.5rem; color: var(--accent-gold);">Bhagavad Gītā Guidance</h2>
+                <p style="font-size: 1.1rem; margin-bottom: 2rem; line-height: 1.7;">
+                    Interact with our internal **Lord Krishna Chatbot** to get personal guidance straight from the authentic verses of the Bhagavad Gita. Experience divine wisdom tailored to your modern life.
+                </p>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <a href="gita.html" class="btn btn-primary">✨ Consult the Gita</a>
+                    <a href="gita.html" class="btn btn-secondary"><i class="fas fa-comment-dots"></i> Talk to Krishna</a>
+                </div>
+            </div>
+            <div style="border: 2px solid var(--accent-gold); border-radius: 15px; overflow: hidden; box-shadow: 0 0 30px rgba(212,175,55,0.2);" data-aos="zoom-in">
+                <img src="assets/gita-guidance.jpg" alt="Krishna and Arjuna" style="width: 100%; display: block;">
+            </div>
+        </div>
+    </section>
+
+    <!-- Calculate Kundli Section -->
+    <section class="kundli-segment" style="background: linear-gradient(135deg, rgba(30, 11, 14, 0.9), rgba(64, 13, 22, 0.9)); padding: 4rem 1rem; text-align: center; border-bottom: 1px solid var(--accent-gold);">
+        <div class="container">
+            <h2 class="devnagari-style" style="font-size: 2.5rem; margin-bottom: 1.5rem; color: var(--accent-gold); text-shadow: 0 0 10px rgba(212,175,55,0.4);">Calculate Your Own Kundli</h2>
+            <p style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">Generate a comprehensive birth chart immediately using the world's most precise calculation engine.</p>
+            <a href="https://deva.guru" target="_blank" class="btn btn-outline" style="font-family: 'Kalam', cursive; font-size: 1.3rem;">Launch Deva.Guru <i class="fas fa-external-link-alt"></i></a>
+        </div>
+    </section>
+
+    <!-- Latest Articles Section -->
+    <section class="articles-section section-padding" id="insights">
+        <div class="container">
+            <h2 class="section-title">Vedic Insights</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                <div class="article-card" style="background: var(--bg-card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-light); transition: transform 0.3s ease;" data-aos="fade-up">
+                    <div style="height: 200px; background: url('assets/karakamsa.jpg') center/cover;"></div>
+                    <div style="padding: 1.5rem;">
+                        <span style="color: var(--accent-gold); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Tradition</span>
+                        <h3 style="margin: 0.5rem 0 1rem; font-size: 1.4rem;">Kārakāṁśa: The Soul's Seat</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Explore the deepest layer of the horoscope—the Navamsha position of the Atmakaraka and its spiritual significance.</p>
+                        <a href="articles/karakamsa.html" class="btn btn-outline btn-sm">Read Article</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- FAQ Section -->
     <section class="faq section-padding" id="faq">
         <div class="container">
@@ -315,9 +422,22 @@
                     <p>Select your consultation type and submit your details to initiate a booking.</p>
                     <div class="contact-methods">
                         <p><i class="fab fa-whatsapp"></i> +91 9630958614</p>
-                        <p><i class="fas fa-envelope"></i> sarthakbhattacharyyya@gmail.com</p>
+                         <p><i class="fas fa-envelope"></i> sarthakbhattacharyyya@gmail.com</p>
                         <p><i class="fas fa-map-marker-alt"></i> Online (Google Meet)</p>
+                        <p><i class="fab fa-linkedin"></i> <a href="https://www.linkedin.com/in/sarthak-bhattacharyya-735489399/" target="_blank" style="color: var(--text-secondary); text-decoration: none;">Professional Profile</a></p>
                     </div>
+                    
+                    <!-- My Roots - Ancestral Location -->
+                    <div class="map-section" style="margin-top: 1.5rem;">
+                        <h4 style="color: var(--accent-gold); margin-bottom: 0.8rem; font-size: 1.1rem; font-family: 'Kalam', cursive;">My roots 💜</h4>
+                        <div class="map-wrapper" style="border-radius: 12px; overflow: hidden; border: 2px solid var(--accent-gold); height: 260px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); background: rgba(0,0,0,0.2);">
+                            <iframe 
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3719.537!2d81.698!3d21.276!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjHCsDE2JzM0LjEiTiA4McKwNDInMDAuMiJF!5e0!3m2!1sen!2sin!4v1711535000000&q=21.276138,81.700066" 
+                                width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+                            </iframe>
+                        </div>
+                    </div>
+
                     <div class="upi-box mt-4">
                         <h4>Payment via UPI</h4>
                         <p class="upi-id">sarthakbhattacharyyya-1@okaxis</p>
@@ -346,12 +466,18 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Date of Birth</label>
-                                <input type="text" name="dob" required placeholder="DD-MM-YYYY">
+                                <input type="text" id="dob-input" name="dob" required placeholder="DD / MM / YYYY" maxlength="14">
                             </div>
                             <div class="form-group">
                                 <label>Time of Birth</label>
-                                <input type="text" name="tob" required placeholder="e.g. 05:30 AM or 02:45 PM">
-                                <small>Please include AM or PM.</small>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <input type="text" id="tob-input" name="tob" required placeholder="HH : MM : SS" maxlength="10" style="flex: 1;">
+                                    <select id="ampm-select" name="ampm" style="width: 80px; padding: 0.5rem;" required>
+                                        <option value="AM">AM</option>
+                                        <option value="PM">PM</option>
+                                    </select>
+                                </div>
+                                <small>Please be exact.</small>
                             </div>
                         </div>
                         <div class="form-group" style="position: relative;">
@@ -366,19 +492,21 @@
                         <div class="form-group">
                             <label>Select Service</label>
                             <select name="service" required id="service-select">
-                                <option value="" data-price="0">Select...</option>
-                                <option value="Natal Chart Reading (45 min)" data-price="501">Natal Chart Reading - 45 min (₹501)</option>
-                                <option value="Natal Chart Reading (60 min)" data-price="1001">Natal Chart Reading - 60 min (₹1001)</option>
-                                <option value="Career & Finance" data-price="501">Career & Finance - 45 min (₹501)</option>
-                                <option value="Relationship Compatibility" data-price="1001">Relationship Compatibility - 60 min (₹1001)</option>
-                                <option value="Muhurta" data-price="501">Muhūrta - 45 min (₹501)</option>
-                                <option value="Prashna" data-price="501">Prashna - 45 min (₹501)</option>
+                                <option value="">Select a Consultation...</option>
+                                <option value="quick-30min" data-price="309">Quick Consultation (30 min) — ₹309</option>
+                                <option value="natal-45min" data-price="501">Natal Chart Reading (45 min) — ₹501</option>
+                                <option value="natal-60min" data-price="1001">Natal Chart (Extended - 60 min) — ₹1001</option>
+                                <option value="career-45min" data-price="501">Career & Finance (45 min) — ₹501</option>
+                                <option value="love-60min" data-price="1001">Relationship Synastry (60 min) — ₹1001</option>
+                                <option value="muhurta-45min" data-price="501">Muhūrta Selection (45 min) — ₹501</option>
+                                <option value="prashna-45min" data-price="501">Prashna (Specific Query) — ₹501</option>
                             </select>
                         </div>
                         
                         <div class="form-group">
-                            <label>Main Question / Area of Focus</label>
-                            <textarea name="question" rows="4"></textarea>
+                            <label>Main Question / Area of Focus <span style="font-size: 0.8rem; opacity: 0.7;">(Optional)</span></label>
+                            <textarea name="question" rows="4" placeholder="Please list at least 3 specific questions or areas you'd like me to focus on. (e.g., Career, Marriage, Health)"></textarea>
+                            <small>Although the consultation is open-ended, specific questions help narrow down the reading.</small>
                         </div>
 
                         <button type="submit" class="btn btn-primary btn-block">Confirm Details & Proceed to Pay</button>
@@ -405,22 +533,36 @@
                         <!-- Desktop QR Code -->
                         <div id="desktop-qr-container">
                             <div style="background: white; padding: 1rem; border-radius: 12px; display: inline-block; margin-bottom: 1.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
-                                <!-- QR Code dynamically generated via API -->
-                                <img id="upi-qr" src="" alt="UPI QR Code" style="width: 200px; height: 200px; display: block;">
+                                <!-- Using local QR code if uploaded, fallback to generated -->
+                                <img id="upi-qr" src="assets/upi-qr.png" onerror="this.src='https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=' + encodeURIComponent('upi://pay?pa=sarthakbhattacharyyya-1@okaxis&pn=Sarthak%20Bhattacharyya&cu=INR')" alt="UPI QR Code" style="width: 200px; height: 200px; display: block;">
                             </div>
                             <p style="font-weight: 500; font-size: 1.1rem; color: var(--text-primary); margin-bottom: 0.2rem;">Scan with any UPI App</p>
                             <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1.5rem;">GPay, PhonePe, Paytm, BHIM</p>
                         </div>
                         
-                        <div style="background: rgba(107, 31, 42, 0.1); padding: 0.8rem; border-radius: 6px; margin-bottom: 1.5rem;">
+                        <div style="background: rgba(107, 31, 42, 0.1); padding: 0.8rem; border-radius: 6px; margin-bottom: 2rem;">
                             <span style="font-size: 0.85rem; color: var(--text-secondary);">Verified UPI ID:</span><br>
                             <strong style="color: var(--accent-burgundy); letter-spacing: 0.5px; font-size: 1.1rem;">sarthakbhattacharyyya-1@okaxis</strong>
                         </div>
+
+                        <!-- Formal Gateway Section -->
+                        <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 1.5rem; margin-bottom: 2rem;">
+                            <p style="font-size: 0.85rem; color: #b0a4d4; margin-bottom: 1rem;">— OR USE SECURE GATEWAY —</p>
+                            <button type="button" class="btn btn-secondary btn-block" style="background: rgba(255,255,255,0.05); border: 1px solid var(--accent-gold); color: var(--accent-gold);" onclick="alert('CCAvenue/Razorpay Integration: Please provide your Merchant ID and Access Keys to activate live credit/debit card processing.')">
+                                <i class="fas fa-credit-card"></i> Pay via CCAvenue (Gateway)
+                            </button>
+                            <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem; line-height: 1.3;">
+                                Formal gateway processing is currently in <strong><em>Sandbox Mode</em></strong>. Use UPI for instant confirmation.
+                            </p>
+                        </div>
                         
                         <div style="text-align: left;">
-                            <label style="display:block; margin-bottom:0.5rem; font-weight: 500;">Payment Verification</label>
-                            <input type="text" id="utr-input" placeholder="Enter 12-Digit UTR / Ref No." maxlength="12" style="margin-bottom: 1rem; border-color: var(--accent-gold); text-align: center; letter-spacing: 1px;">
-                            <button id="verify-payment-btn" class="btn btn-primary btn-block">Verify & Send to WhatsApp</button>
+                            <label style="display:block; margin-bottom:0.5rem; font-weight: 500;">Step 1: Upload Payment Screenshot</label>
+                            <input type="file" id="payment-screenshot" accept="image/*" style="margin-bottom: 1rem; padding: 0.5rem;">
+                            
+                            <label style="display:block; margin-bottom:0.5rem; font-weight: 500;">Step 2: Enter 12-Digit UTR / Ref No.</label>
+                            <input type="text" id="utr-input" placeholder="e.g. 123456789012" maxlength="12" style="margin-bottom: 1rem; border-color: var(--accent-gold); text-align: center; letter-spacing: 1px;">
+                            <button id="verify-payment-btn" class="btn btn-primary btn-block">Verify & Book Consultation</button>
                         </div>
                     </div>
 
@@ -442,6 +584,7 @@
         <div style="margin-bottom: 1.5rem; font-size: 1.5rem; color: var(--accent-gold); display: flex; justify-content: center; gap: 1.5rem;">
             <a href="https://www.instagram.com/alpacinoismydaddy?igsh=cnh3cW4weGU3Nml1" target="_blank"><i class="fab fa-instagram"></i></a>
             <a href="https://wa.me/919630958614" target="_blank"><i class="fab fa-whatsapp"></i></a>
+            <a href="https://www.linkedin.com/in/sarthak-bhattacharyya-735489399/" target="_blank"><i class="fab fa-linkedin"></i></a>
         </div>
         <p>© 2025 GenZ Jyotiṣa | <strong><em>Sarthak Bhattacharyya</em></strong>. All Rights Reserved.</p>
         <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem; max-width: 600px; margin-left: auto; margin-right: auto;">

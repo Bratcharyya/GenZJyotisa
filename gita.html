@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bhagavad Gita Guidance | GenZ Jyotiṣa</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Outfit:wght@300;400;600&family=Tiro+Devanagari+Sanskrit&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gita-page { background: radial-gradient(circle at center, #1a1a3a 0%, #0c0c1e 100%); min-height: 100vh; color: #f0f0ff; }
+        .gita-container { max-width: 900px; margin: 0 auto; padding: 100px 20px 50px; }
+        .tab-nav { display: flex; justify-content: center; gap: 2rem; margin-bottom: 3rem; }
+        .tab-btn { background: none; border: none; color: #b0a4d4; font-size: 1.2rem; cursor: pointer; padding: 0.5rem 1rem; border-bottom: 2px solid transparent; transition: all 0.3s; }
+        .tab-btn.active { color: var(--accent-gold); border-bottom-color: var(--accent-gold); }
+        
+        .gita-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(139, 92, 246, 0.15); border-radius: 20px; padding: 2.5rem; margin-bottom: 2rem; }
+        .shloka-box { padding: 24px; margin: 20px 0; text-align: center; background: linear-gradient(145deg, rgba(26,19,51,0.6), rgba(45,31,94,0.4)); border-radius: 15px; border: 1px solid rgba(255,213,79,0.2); }
+        .shloka-sanskrit { font-family: 'Tiro Devanagari Sanskrit', serif; font-size: 1.5rem; color: #ffd54f; line-height: 1.8; margin-bottom: 1rem; }
+        .shloka-translit { font-size: 0.9rem; color: #b39ddb; font-style: italic; }
+        
+        .chat-window { height: 500px; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; padding-right: 10px; }
+        .chat-bubble { max-width: 80%; padding: 1rem 1.5rem; border-radius: 15px; line-height: 1.6; }
+        .user-bubble { align-self: flex-end; background: var(--accent-gold); color: var(--bg-dark); font-weight: 500; }
+        .krishna-bubble { align-self: flex-start; background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.3); }
+        .chat-input-area { display: flex; gap: 1rem; margin-top: 2rem; }
+        .chat-input-area input { flex: 1; background: rgba(0,0,0,0.3); border: 1px solid rgba(139,92,246,0.3); color: white; padding: 1rem; border-radius: 10px; }
+    </style>
+</head>
+<body class="gita-page">
+    <nav class="navbar scrolled">
+        <a href="index.html" class="nav-brand">GenZ Jyotiṣa <span class="nav-subtitle">Bhagavad Gītā</span></a>
+        <div class="nav-links">
+            <a href="index.html">Home</a>
+            <a href="articles/karakamsa.html">Articles</a>
+            <a href="index.html#booking" class="btn btn-primary">Book Consult</a>
+        </div>
+    </nav>
+
+    <div class="gita-container">
+        <header style="text-align: center; margin-bottom: 3rem;">
+            <h1 class="devnagari-style" style="font-size: 3rem; color: var(--accent-gold);">Divine Guidance</h1>
+            <p style="color: #b0a4d4;">Seek wisdom for your modern journey from the eternal source.</p>
+        </header>
+
+        <div class="tab-nav">
+            <button class="tab-btn active" onclick="switchTab('verses')">🕉️ Verse Guidance</button>
+            <button class="tab-btn" onclick="switchTab('chat')">🙏 Ask Lord Krishna</button>
+        </div>
+
+        <div id="verses-section" class="tab-content">
+            <div class="gita-card">
+                <h3 style="margin-bottom: 1.5rem;">How are you feeling today?</h3>
+                <div class="chat-input-area" style="margin-top:0;">
+                    <input type="text" id="feeling-input" placeholder="e.g. I feel anxious about my future...">
+                    <button class="btn btn-primary" onclick="getGuidance()">✨ Get Wisdom</button>
+                </div>
+            </div>
+            <div id="guidance-results"></div>
+        </div>
+
+        <div id="chat-section" class="tab-content" style="display: none;">
+            <div class="gita-card">
+                <div class="chat-window" id="chat-window">
+                    <div class="chat-bubble krishna-bubble">🙏 Welcome, O Arjuna. What doubts cloud your mind on this journey? Speak freely, and I shall share the wisdom of the Gita with you.</div>
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="chat-input" placeholder="Ask Lord Krishna..." onkeypress="if(event.key==='Enter') sendChatMessage()">
+                    <button class="btn btn-primary" onclick="sendChatMessage()"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let chatHistory = [];
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+            document.querySelector(`button[onclick="switchTab('${tab}')"]`).classList.add('active');
+            document.getElementById(`${tab}-section`).style.display = 'block';
+        }
+
+        async function getGuidance() {
+            const query = document.getElementById('feeling-input').value;
+            if(!query) return;
+            const container = document.getElementById('guidance-results');
+            container.innerHTML = '<p style="text-align:center;">Analyzing the vibrations... 🙏</p>';
+            
+            try {
+                const res = await fetch('/api/gita/recommend', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({query})
+                });
+                const data = await res.json();
+                
+                let html = `<div class="gita-card"><p style="font-style:italic; font-size:1.1rem; line-height:1.7;">"${data.insight}"</p></div>`;
+                data.verses.forEach(v => {
+                    html += `
+                        <div class="gita-card">
+                            <h4 style="color:var(--accent-gold); margin-bottom:1rem;">${v.reference}</h4>
+                            ${v.slok ? `<div class="shloka-box"><div class="shloka-sanskrit">${v.slok}</div><div class="shloka-translit">${v.transliteration}</div></div>` : ''}
+                            <p style="font-size:1.1rem; line-height:1.6;">${v.text}</p>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } catch (e) {
+                container.innerHTML = '<p>The connection failed. Please try again.</p>';
+            }
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value;
+            if(!message) return;
+            
+            const window = document.getElementById('chat-window');
+            window.innerHTML += `<div class="chat-bubble user-bubble">${message}</div>`;
+            input.value = '';
+            window.scrollTop = window.scrollHeight;
+            
+            try {
+                const res = await fetch('/api/gita/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message, history: chatHistory})
+                });
+                const data = await res.json();
+                
+                let shlokaHtml = '';
+                data.shlokas.forEach(s => {
+                    shlokaHtml += `<div class="shloka-box" style="font-size:0.9rem; padding:15px;"><div class="shloka-sanskrit" style="font-size:1.1rem;">${s.slok}</div><p>${s.reference}</p></div>`;
+                });
+                
+                window.innerHTML += `<div class="chat-bubble krishna-bubble">${data.response}${shlokaHtml}</div>`;
+                window.scrollTop = window.scrollHeight;
+                
+                chatHistory.push({role: "user", parts: [{text: message}]});
+                chatHistory.push({role: "model", parts: [{text: data.response}]});
+            } catch (e) {
+                window.innerHTML += `<div class="chat-bubble krishna-bubble">O Arjuna, the connection is lost. Try again.</div>`;
+            }
+        }
+    </script>
+</body>
+</html>

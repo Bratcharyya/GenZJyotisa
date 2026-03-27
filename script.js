@@ -81,6 +81,40 @@ const formMessage = document.getElementById('form-message');
 let currentBookingData = {};
 
 if (bookingForm) {
+    // DOB Auto-formatting (DD/MM/YYYY)
+    const dobInput = document.getElementById('dob-input');
+    const tobInput = document.getElementById('tob-input');
+    
+    dobInput.addEventListener('input', function(e) {
+        let val = this.value.replace(/\D/g, '');
+        if (val.length > 8) val = val.slice(0, 8);
+        
+        let formatted = '';
+        if (val.length > 0) formatted += val.slice(0, 2);
+        if (val.length > 2) formatted += ' / ' + val.slice(2, 4);
+        if (val.length > 4) formatted += ' / ' + val.slice(4, 8);
+        
+        this.value = formatted;
+        
+        // Auto-focus to Time of Birth once DOB is complete
+        if (val.length === 8) {
+            setTimeout(() => tobInput.focus(), 100);
+        }
+    });
+
+    // TOB Auto-formatting (HH:MM:SS)
+    tobInput.addEventListener('input', function(e) {
+        let val = this.value.replace(/\D/g, '');
+        if (val.length > 6) val = val.slice(0, 6);
+        
+        let formatted = '';
+        if (val.length > 0) formatted += val.slice(0, 2);
+        if (val.length > 2) formatted += ' : ' + val.slice(2, 4);
+        if (val.length > 4) formatted += ' : ' + val.slice(4, 6);
+        
+        this.value = formatted;
+    });
+
     bookingForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -90,10 +124,10 @@ if (bookingForm) {
         
         currentBookingData = {
             name: formData.get('name'),
-            service: selectedOption.textContent.split(' - ')[0], // Extracts clean service name
+            service: selectedOption.textContent.split(' - ')[0], 
             price: selectedOption.getAttribute('data-price'),
             dob: formData.get('dob'),
-            tob: formData.get('tob'),
+            tob: formData.get('tob') + ' ' + formData.get('ampm'),
             pob: formData.get('pob'),
             pob_lat: formData.get('pob_lat'),
             pob_lon: formData.get('pob_lon'),
@@ -105,10 +139,9 @@ if (bookingForm) {
             return;
         }
         
-        // Strict AM/PM Validation for Time of Birth
-        const tobCheck = currentBookingData.tob.toUpperCase();
-        if (!tobCheck.includes("AM") && !tobCheck.includes("PM")) {
-            alert("Please specify AM or PM in your Time of Birth.");
+        // Strict Validation for Time of Birth (Since we use a select for AM/PM now, only check format)
+        if (currentBookingData.dob.length < 14 || currentBookingData.tob.length < 11) {
+            alert("Please provide complete Birth Date and Time.");
             return;
         }
         
@@ -143,9 +176,15 @@ const verifyBtn = document.getElementById('verify-payment-btn');
 if (verifyBtn) {
     verifyBtn.addEventListener('click', function() {
         const utr = document.getElementById('utr-input').value.trim();
+        const screenshot = document.getElementById('payment-screenshot').files[0];
         
+        if (!screenshot) {
+            alert("Payment Verification Failed: Please upload a screenshot of your transaction proof.");
+            return;
+        }
+
         if (utr.length < 12) {
-            alert("Payment Verification Failed: Please enter a valid 12-digit UTR or transaction reference number from your payment app (Google Pay/PhonePe/Paytm).");
+            alert("Payment Verification Failed: Please enter a valid 12-digit UTR or transaction reference number.");
             return;
         }
         
@@ -156,10 +195,10 @@ if (verifyBtn) {
         // Redirect to WhatsApp with payment proof
         setTimeout(() => {
             const waNumber = "919630958614";
-            const focusContext = currentBookingData.question ? `\nFocus/Question: ${currentBookingData.question}` : "";
+            const focusContext = currentBookingData.question ? `\n*Focus/Questions:* ${currentBookingData.question}` : "";
             const coordsContext = (currentBookingData.pob_lat && currentBookingData.pob_lon) ? ` [Lat: ${parseFloat(currentBookingData.pob_lat).toFixed(4)}, Lon: ${parseFloat(currentBookingData.pob_lon).toFixed(4)}]` : "";
             
-            const text = `Hari Om! I have completed my payment of ₹${currentBookingData.price} and am submitting my booking details.\n\n*Name:* ${currentBookingData.name}\n*Service:* ${currentBookingData.service}\n*DOB:* ${currentBookingData.dob}\n*TOB:* ${currentBookingData.tob}\n*Place:* ${currentBookingData.pob}${coordsContext}${focusContext}\n\n*Payment UTR:* ${utr}`;
+            const text = `Hari Om! I have completed my payment of ₹${currentBookingData.price} and am submitting my booking details.\n\n*Full Name:* ${currentBookingData.name}\n*Service:* ${currentBookingData.service}\n*Date of Birth:* ${currentBookingData.dob}\n*Time of Birth:* ${currentBookingData.tob}\n*Place of Birth:* ${currentBookingData.pob}${coordsContext}${focusContext}\n\n*Payment UTR:* ${utr}\n\n(I am attaching the payment screenshot to this message manually)`;
             
             const waLink = `https://wa.me/${waNumber}?text=${encodeURIComponent(text)}`;
             window.open(waLink, '_blank');
