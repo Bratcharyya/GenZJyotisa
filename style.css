@@ -1125,3 +1125,53 @@ input[type="date"]::-webkit-inner-spin-button {
     font-size: 2.5rem;
   }
 }
+
+/* Mobile Adjustments for Better Image Visibility */
+@media (max-width: 768px) {
+  .section-padding {
+    padding: 3rem 1.2rem;
+  }
+  
+  .ishta-devta .container, 
+  .gita-guidance .container {
+    grid-template-columns: 1fr !important;
+    text-align: center;
+    gap: 2rem !important;
+  }
+
+  .ishta-devta img, 
+  .gita-guidance img {
+    max-width: 350px;
+    margin: 0 auto;
+    border-radius: 12px;
+  }
+
+  .ishta-devta-content,
+  .gita-content {
+    order: 2; /* Text below image */
+  }
+
+  /* Fix for background images on mobile */
+  .ishta-devta, .gita-guidance {
+    background-attachment: scroll !important;
+  }
+
+  /* Timeline Mobile Fix */
+  .timeline::before {
+    left: 20px !important;
+  }
+  .timeline-item {
+    padding-right: 0 !important;
+    padding-left: 50px !important;
+    justify-content: flex-start !important;
+  }
+  .timeline-item:nth-child(even) {
+    padding-left: 50px !important;
+  }
+  .timeline-dot {
+    left: 20px !important;
+  }
+  .timeline-content {
+    width: 100% !important;
+  }
+}

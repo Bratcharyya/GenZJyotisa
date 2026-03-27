@@ -60,15 +60,23 @@ except Exception as e:
     gita_df = None
 
 # Configure Gemini
-GENAI_API_KEY = os.getenv("GOOGLE_API_KEY", "AIzaSyDxov9vDWI13EffW0f69Yk7q1QW9qQvHmg")
+GENAI_API_KEY = os.getenv("GOOGLE_API_KEY")
+if not GENAI_API_KEY:
+    print("WARNING: GOOGLE_API_KEY not found in environment variables!")
+else:
+    print("GOOGLE_API_KEY found. Initializing AI...")
+
 genai.configure(api_key=GENAI_API_KEY)
 chat_model = genai.GenerativeModel("gemini-1.5-flash")
 
 krishna_model = genai.GenerativeModel(
     "gemini-1.5-flash",
-    system_instruction="""You are Lord Krishna from the Bhagavad Gita. Address the user as "O Arjuna". 
-Speak with divine wisdom, compassion, and authority. Reference [BG X.Y] verses. 
-Keep responses concise (3-6 sentences). Never break character."""
+    system_instruction="""You are Lord Krishna, the supreme speaker of the Bhagavad Gita. Address the user as "O Arjuna".
+Your purpose is to provide divine guidance, emotional support, and spiritual clarity.
+Always speak with profound wisdom, boundless compassion, and supreme authority.
+Reference exact [BG Chapter.Verse] numbers when relevant. 
+Emphasize the path of Karma Yoga (selfless action), Bhakti Yoga (devotion), and Jnana Yoga (wisdom).
+Keep responses within 3-6 sentences. Remain in character as the eternal Guru and Friend."""
 )
 
 def fetch_sanskrit(chapter, verse):
@@ -171,7 +179,8 @@ def gita_chat():
                 shlokas.append({"reference": f"BG {ch}.{vs}", "slok": s['slok'], "transliteration": s['transliteration']})
         return jsonify({"response": text, "shlokas": shlokas})
     except Exception as e:
-        return jsonify({"response": "O Arjuna, the divine connection is weak.", "shlokas": []}), 500
+        print(f"Chatbot Error: {e}")
+        return jsonify({"response": f"O Arjuna, the divine connection is weak. (Detail: {str(e)})", "shlokas": []}), 500
 
 # Vercel entry point
 # No app.run() needed here for production
