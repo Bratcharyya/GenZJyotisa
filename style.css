@@ -784,28 +784,6 @@ a:hover {
   text-align: center;
 }
 
-.upi-box {
-  background: rgba(201, 168, 76, 0.05);
-  border: 1px dashed var(--accent-gold);
-  padding: 1.5rem;
-  border-radius: 8px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-.upi-box h4 {
-  margin-bottom: 0.5rem;
-  color: var(--text-primary);
-}
-
-.upi-id {
-  font-family: monospace;
-  font-size: 1.2rem;
-  color: var(--accent-gold) !important;
-  margin-bottom: 0 !important;
-  letter-spacing: 1px;
-}
-
 .booking-form-wrapper form {
   display: flex;
   flex-direction: column;
