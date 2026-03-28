@@ -1282,6 +1282,13 @@ input[type="date"]::-webkit-inner-spin-button {
     object-fit: cover;
 }
 
+.gita-image-wrapper {
+    border: 2px solid var(--accent-gold);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(212,175,55,0.2);
+}
+
 .ishta-text {
     color: #f0f0f0;
     line-height: 1.8;
@@ -1318,7 +1325,7 @@ input[type="date"]::-webkit-inner-spin-button {
   }
 
   .ishta-devta-image,
-  .gita-guidance div[style*="border"] {
+  .gita-image-wrapper {
     max-width: 340px;
     width: 90%;
     margin: 0 auto;

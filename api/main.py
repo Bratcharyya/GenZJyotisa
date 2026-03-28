@@ -10,6 +10,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import re
 import requests
 import razorpay
+import xml.etree.ElementTree as ET
 
 app = Flask(__name__, static_folder=".", static_url_path="")
 
@@ -236,36 +237,30 @@ def gita_chat():
 @app.route('/api/news', methods=['GET'])
 def get_news():
     try:
-        # The user requested live, clickable links. We'll use the raw REST API with googleSearchRetrieval 
-        # to ensure it works properly bypassing any python SDK limitations.
-        prompt = (
-            "Provide the 5 most popular global breaking news headlines for today. "
-            "Each headline MUST be a valid markdown link. "
-            "Format: [Headline Text](URL) | [Headline Text](URL) | [Headline Text](URL) ..."
-        )
-        
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={GENAI_API_KEY}"
-        headers = {'Content-Type': 'application/json'}
-        payload = {
-            "contents": [{"parts": [{"text": prompt}]}],
-            "tools": [{"googleSearchRetrieval": {}}]
-        }
-        
-        response = requests.post(url, headers=headers, json=payload)
+        # Use Python to fetch live Google News RSS, completely bypassing Gemini paid limits
+        url = "https://news.google.com/rss?hl=en-IN&gl=IN&ceid=IN:en"
+        response = requests.get(url, timeout=5)
         response.raise_for_status()
         
-        data = response.json()
-        news_text = data.get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', '')
+        root = ET.fromstring(response.content)
+        items = root.findall('.//item')[:5]
         
-        if not news_text:
-            raise ValueError("Empty response from API")
+        headlines = []
+        for item in items:
+            title = item.find('title')
+            link = item.find('link')
+            if title is not None and link is not None:
+                # Format as Markdown
+                headlines.append(f"[{title.text}]({link.text})")
+                
+        if not headlines:
+            raise ValueError("No news items found")
             
+        news_text = " | ".join(headlines)
         return jsonify({"news": news_text})
     except Exception as e:
-        error_msg = str(e)
-        if "API_KEY_INVALID" in error_msg or "400" in error_msg:
-            print(f"CRITICAL: API Key Issue. Please update GOOGLE_API_KEY in Vercel settings.")
-        return jsonify({"news": "✦ Spiritual wisdom is eternal... ✦ Celestial events unfolding... ✦ Please ensure your divine connection (API Key) is active! ✦"})
+        print(f"News Fetch Error: {str(e)}")
+        return jsonify({"news": "✦ Spiritual wisdom is eternal... ✦ Celestial events unfolding... ✦ Please ensure your divine connection is active! ✦"})
 
 # Vercel entry point
 # No app.run() needed here for production

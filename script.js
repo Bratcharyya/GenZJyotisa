@@ -373,28 +373,36 @@ async function getGitaGuidance() {
 }
 
 let gitaChatHistory = [];
+let globalNewsText = ""; // Cache for context injection
+
 async function sendGitaChat() {
     const input = document.getElementById('gita-chat-input');
-    const message = input.value.trim();
-    if (!message) return;
+    const userMessage = input.value.trim();
+    if (!userMessage) return;
 
     const window = document.getElementById('gita-chat-window');
-    window.innerHTML += `<div style="text-align:right; margin-bottom:1rem; color:#fff;"><strong>You:</strong> ${message}</div>`;
+    window.innerHTML += `<div style="text-align:right; margin-bottom:1rem; color:#fff;"><strong>You:</strong> ${userMessage}</div>`;
     input.value = '';
     window.scrollTop = window.scrollHeight;
+
+    // Context Injection Strategy (Bypasses Free Tier SDK Limits)
+    let payloadMessage = userMessage;
+    if (gitaChatHistory.length === 0 && globalNewsText) {
+        payloadMessage = `[System Internet-Context Injection:\nLatest World Breaking News: ${globalNewsText}\n\nYou are Lord Krishna from the Bhagavad Gita. If the user asks about current events, use the above news graciously in your response. Otherwise, ignore it and answer them normally.]\n\nUser Question: ${userMessage}`;
+    }
 
     try {
         const res = await fetch('/api/gita/chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message, history: gitaChatHistory })
+            body: JSON.stringify({ message: payloadMessage, history: gitaChatHistory })
         });
         const data = await res.json();
 
         window.innerHTML += `<div style="margin-bottom:1rem; color:var(--accent-gold);"><strong>Lord Krishna:</strong> ${data.response}</div>`;
         window.scrollTop = window.scrollHeight;
 
-        gitaChatHistory.push({ role: "user", parts: [{ text: message }] });
+        gitaChatHistory.push({ role: "user", parts: [{ text: payloadMessage }] });
         gitaChatHistory.push({ role: "model", parts: [{ text: data.response }] });
     } catch (e) {
         console.error("Krishna Chat Error:", e);
@@ -413,6 +421,8 @@ async function fetchBreakingNews() {
         const response = await fetch('/api/news');
         if (!response.ok) throw new Error('News API failure');
         const data = await response.json();
+        
+        globalNewsText = data.news; // Cache locally for the chatbot
 
         // Convert [Headline](URL) to <a> tags - handle slightly varied markdown
         const html = data.news.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank">✦ $1 ✦</a>');
