@@ -314,19 +314,25 @@ if (panchangForm) {
 
 // --- Lord Krishna Chatbot Logic ---
 let gitaChatHistory = [];
-async function sendGitaChat() {
+async function sendGitaChat(customMsg = null) {
     const input = document.getElementById('gita-chat-input');
-    const msg = input.value.trim();
+    const msg = customMsg || input.value.trim();
     if (!msg) return;
 
     const window = document.getElementById('gita-chat-window');
+    const typing = document.getElementById('gita-typing');
     
     // User Message
-    window.innerHTML += `
-        <div class="chat-bubble user">
-            <div class="bubble-content">${msg}</div>
-        </div>`;
-    input.value = '';
+    const userBubble = document.createElement('div');
+    userBubble.className = 'chat-bubble user';
+    userBubble.innerHTML = `<div class="bubble-content">${msg}</div>`;
+    window.insertBefore(userBubble, typing);
+    
+    if (!customMsg) input.value = '';
+    window.scrollTo({ top: window.scrollHeight, behavior: 'smooth' });
+
+    // Show Typing Indicator
+    typing.style.display = 'flex';
     window.scrollTo({ top: window.scrollHeight, behavior: 'smooth' });
 
     try {
@@ -337,6 +343,9 @@ async function sendGitaChat() {
         });
         const data = await res.json();
         
+        // Hide Typing Indicator
+        typing.style.display = 'none';
+
         // Bot Message
         let shlokaHtml = '';
         if (data.shlokas && data.shlokas.length > 0) {
@@ -350,27 +359,36 @@ async function sendGitaChat() {
             });
         }
 
-        window.innerHTML += `
-            <div class="chat-bubble bot">
-                <img src="assets/gita-guidance.png" class="chat-avatar" alt="Krishna">
-                <div class="bubble-content">
-                    ${shlokaHtml}
-                    <strong>Lord Krishna:</strong><br>${data.response}
-                </div>
+        const botBubble = document.createElement('div');
+        botBubble.className = 'chat-bubble bot';
+        botBubble.innerHTML = `
+            <img src="assets/gita-guidance.png" class="chat-avatar" alt="Krishna">
+            <div class="bubble-content">
+                ${shlokaHtml}
+                <strong>Lord Krishna:</strong><br>${data.response}
             </div>`;
+        window.insertBefore(botBubble, typing);
         window.scrollTo({ top: window.scrollHeight, behavior: 'smooth' });
         
         gitaChatHistory.push({ role: "user", parts: [{ text: msg }] });
         gitaChatHistory.push({ role: "model", parts: [{ text: data.response }] });
     } catch (e) {
-        window.innerHTML += `
-            <div class="chat-bubble bot">
-                <img src="assets/gita-guidance.png" class="chat-avatar" alt="Krishna">
-                <div class="bubble-content" style="color:var(--accent-burgundy); font-style:italic;">
-                    "The divine link is momentarily broken, O seeker."
-                </div>
+        typing.style.display = 'none';
+        const errorBubble = document.createElement('div');
+        errorBubble.className = 'chat-bubble bot';
+        errorBubble.innerHTML = `
+            <img src="assets/gita-guidance.png" class="chat-avatar" alt="Krishna">
+            <div class="bubble-content" style="color:var(--accent-burgundy); font-style:italic;">
+                "The divine link is momentarily broken, O seeker."
             </div>`;
+        window.insertBefore(errorBubble, typing);
     }
+}
+
+function startGitaChat(query) {
+    const section = document.getElementById('gita-guidance');
+    section.scrollIntoView({ behavior: 'smooth' });
+    sendGitaChat(query);
 }
 
 // Fetch news on load
