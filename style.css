@@ -1,20 +1,22 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Laila:wght@300;400;500;600;700&family=Outfit:wght@300;400;600;700;900&display=swap');
 
 :root {
   /* Color Palette */
-  --bg-dark: #0D0D2B; /* Deep midnight navy */
-  --text-primary: #F5F0E8; /* Soft cream */
+  --bg-dark: #1a0b2e; /* Original rich violet as requested */
+  --bg-violet-deep: #1a0b2e; /* Rich purple */
+  --text-primary: #F5F0E8;
   --text-secondary: rgba(245, 240, 232, 0.7);
-  --accent-gold: #C9A84C; /* Cosmic gold */
-  --accent-burgundy: #6B1F2A; /* Accent burgundy */
+  --accent-gold: #C9A84C; 
+  --accent-burgundy: #a04250; /* Slightly brighter burgundy for contrast */
   
   --bg-card: rgba(255, 255, 255, 0.03);
   --border-light: rgba(201, 168, 76, 0.2);
 
   /* Typography */
-  --font-heading: 'Cinzel Decorative', cursive;
+  --font-heading: 'Cormorant Garamond', serif;
   --font-body: 'Laila', serif;
   --font-alt: 'Outfit', sans-serif;
+  --font-accent: 'Cormorant Garamond', serif;
   
   /* Layout */
   --max-width: 1000px; /* Reduced from 1200px */
@@ -109,38 +111,26 @@ html {
 
 body {
   font-family: var(--font-body);
-  background-color: var(--bg-dark);
+  background-color: #1a0b2e; /* Original rich violet base */
+  background-image: 
+    linear-gradient(rgba(26, 11, 46, 0.94), rgba(26, 11, 46, 0.94)), /* Translucent overlay for patterns */
+    url('assets/floral_side_elegant.png');
+  background-attachment: fixed;
+  background-size: auto, 300px; /* Subtle tiling pattern */
+  background-position: center;
   color: var(--text-primary);
   line-height: 1.6;
   overflow-x: hidden;
-  background-image: 
-    url('assets/floral_side_elegant.png'), 
-    url('assets/floral_side_elegant.png'),
-    radial-gradient(circle at 15% 50%, rgba(107, 31, 42, 0.08), transparent 35%),
-    radial-gradient(circle at 85% 30%, rgba(201, 168, 76, 0.08), transparent 35%);
-  background-position: 0% top, 100% top, center, center;
-  background-repeat: repeat-y, repeat-y, no-repeat, no-repeat;
-  background-size: 160px auto, 160px auto, 100% 100%, 100% 100%;
-  background-attachment: fixed;
+  min-height: 100vh;
 }
 
-body::after {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle at center, transparent, rgba(13, 13, 43, 0.15));
-  pointer-events: none;
-  z-index: 5; /* Lowered z-index slightly to let content be on top but keep decoration visible */
-}
+/* Background and Layout Definitions */
 
 h1, h2, h3, h4, h5, h6, .section-title, .devnagari-style {
   font-family: var(--font-heading);
-  font-weight: 700;
+  font-weight: 600; /* Balanced, readable weight */
   color: var(--accent-gold);
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
 }
 
 a {
@@ -157,8 +147,16 @@ a:hover {
   max-width: var(--max-width);
   margin: 0 auto;
   width: 100%;
-  padding: 0 15%; /* Increased padding to avoid florals */
+  padding: 0 1.5rem; /* Standard readable padding */
   box-sizing: border-box;
+  position: relative;
+  z-index: 10;
+}
+
+@media (max-width: 1024px) {
+    .container {
+        padding: 0 1.5rem; /* Standard mobile padding without flowers */
+    }
 }
 
 /* Buttons */
@@ -204,7 +202,7 @@ a:hover {
   top: 40px !important;
   width: 100%;
   padding: 0.4rem 5%;
-  background: rgba(13, 13, 43, 0.95);
+  background: rgba(26, 11, 46, 0.95); /* Matched violet */
   backdrop-filter: blur(10px);
   z-index: 1000;
   display: flex;
@@ -217,7 +215,7 @@ a:hover {
 
 .navbar.scrolled {
   padding: 0.8rem 5%;
-  background: rgba(13, 13, 43, 0.98);
+  background: rgba(26, 11, 46, 0.98); /* Matched violet */
 }
 
 .nav-brand {
@@ -351,14 +349,20 @@ a:hover {
 
 .hero h1 {
   font-family: var(--font-heading);
-  font-weight: 300;
-  font-size: clamp(1.5rem, 4.8vw, 2.7rem);
+  font-weight: 700;
+  font-size: clamp(2.5rem, 6vw, 4.5rem); /* Cormorant needs slightly larger sizing to pop */
   line-height: 1.2;
-  margin-bottom: 1.5rem;
-  letter-spacing: 0px;
+  margin-bottom: 2rem;
+  letter-spacing: -0.5px;
   color: var(--accent-gold);
-  background: none;
-  -webkit-text-fill-color: initial;
+  text-transform: none; /* More readable in mixed case */
+}
+
+@media (max-width: 768px) {
+    .hero h1 {
+        font-size: clamp(1.8rem, 8vw, 2.5rem); /* Prevents overflow in portrait */
+        letter-spacing: 0.5px;
+    }
 }
 
 .hero p {
@@ -371,6 +375,8 @@ a:hover {
   display: flex;
   gap: 1.5rem;
   justify-content: center;
+  position: relative;
+  z-index: 20;
 }
 
 .scroll-indicator {
@@ -504,7 +510,7 @@ a:hover {
   background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: 12px;
-  padding: 2rem;
+  padding: 1.5rem; /* Reduced from 2rem (~25% reduction in padding) */
   position: relative;
   overflow: hidden;
   transition: all 0.4s ease;
@@ -534,10 +540,10 @@ a:hover {
 
 .service-img-wrapper {
   width: 100%;
-  height: 144px;
+  height: 120px; /* Reduced from 144px */
   overflow: hidden;
   border-radius: 8px;
-  margin-bottom: 1.2rem;
+  margin-bottom: 1rem;
   border: 1px solid var(--border-light);
   background: rgba(0,0,0,0.2);
 }
@@ -580,7 +586,7 @@ a:hover {
   justify-content: space-between;
   align-items: center;
   border-top: 1px solid var(--border-light);
-  padding-top: 1.5rem;
+  padding-top: 1rem; /* Reduced from 1.5rem */
 }
 
 .duration {
@@ -1582,7 +1588,7 @@ input:focus, select:focus, textarea:focus {
     background: rgba(255, 213, 79, 0.05);
     border: 1px solid rgba(255, 213, 79, 0.2);
     border-radius: 12px;
-    padding: 1.5rem;
+    padding: 0.8rem; /* Reduced from 1rem (~20%) */
     text-align: center;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -1596,18 +1602,19 @@ input:focus, select:focus, textarea:focus {
 }
 
 .pillar-card i {
-    font-size: 1.8rem;
+    font-size: 1.4rem; /* Reduced from 1.8rem */
     color: var(--accent-gold);
-    margin-bottom: 0.8rem;
+    margin-bottom: 0.5rem;
 }
 
 .pillar-card h4 {
-    margin-bottom: 0.3rem;
+    font-size: 1rem;
+    margin-bottom: 0.2rem;
     color: #fff;
 }
 
 .pillar-card p {
-    font-size: 0.75rem;
+    font-size: 0.7rem; /* Reduced from 0.75rem */
     margin-bottom: 0;
     opacity: 0.7;
 }
@@ -1616,11 +1623,41 @@ input:focus, select:focus, textarea:focus {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 20px;
-    padding: 0.6rem 1.2rem;
+    padding: 0.4rem 1rem; /* Reduced from 0.6rem 1.2rem */
     color: var(--text-secondary);
-    font-size: 0.85rem;
+    font-size: 0.8rem; /* Reduced from 0.85rem */
     cursor: pointer;
     transition: all 0.2s ease;
+}
+
+/* Article Cards Styling */
+.article-card {
+    background: var(--bg-card) !important;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+    transition: transform 0.3s ease;
+}
+
+.article-card-info {
+    padding: 1.2rem; /* Reduced from 1.5rem */
+}
+
+.article-card h3 {
+    font-family: var(--font-heading);
+    font-size: 1.2rem !important; /* Reduced from 1.4rem */
+    margin: 0.4rem 0 0.8rem;
+}
+
+.article-card p {
+    font-size: 0.85rem !important;
+    color: var(--text-secondary);
+    margin-bottom: 1.2rem;
+}
+
+.article-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--accent-gold);
 }
 
 .chip:hover {
@@ -1671,7 +1708,38 @@ input:focus, select:focus, textarea:focus {
 }
 
 @media (max-width: 768px) {
-    .container {
-        padding: 0 1.5rem;
+    .hero {
+        padding: 10rem 1rem 4rem;
+        height: auto;
+        min-height: 80vh;
+    }
+    
+    .hero h1 {
+        font-size: 3.2rem;
+        line-height: 1.1;
+        margin-bottom: 2.5rem;
+    }
+
+    .hero p {
+        font-size: 1.1rem;
+        margin-bottom: 3rem;
+    }
+
+    .hero-ctas {
+        flex-direction: column;
+        gap: 1.2rem;
+        padding: 0 1rem;
+    }
+
+    .btn {
+        width: 100%;
+        padding: 1.2rem;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero h1 {
+        font-size: 2.8rem;
     }
 }

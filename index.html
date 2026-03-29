@@ -6,7 +6,7 @@
     <!-- PWA / Mobile App Meta Tags -->
     <link rel="icon" type="image/png" href="assets/rahu_icon.png">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0D0D2B">
+    <meta name="theme-color" content="#0f051d">
     <link rel="apple-touch-icon" href="assets/rahu_icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -16,7 +16,7 @@
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Laila:wght@300;400;500;600;700&family=Kalam:wght@400;700&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Laila:wght@300;400;500;600;700&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <!-- AOS for Animations -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
@@ -562,21 +562,21 @@
         <div class="container">
             <h2 class="section-title">Vedic Insights</h2>
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
-                <div class="article-card" style="background: var(--bg-card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-light); transition: transform 0.3s ease;" data-aos="fade-up">
-                    <div style="height: 200px; background: url('assets/karakamsa.jpg') center/cover;"></div>
-                    <div style="padding: 1.5rem;">
+                <div class="article-card" data-aos="fade-up">
+                    <div style="height: 160px; background: url('assets/karakamsa.jpg') center/cover;"></div>
+                    <div class="article-card-info">
                         <span style="color: var(--accent-gold); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Tradition</span>
-                        <h3 style="margin: 0.5rem 0 1rem; font-size: 1.4rem;">Kārakāṁśa: The Soul's Seat</h3>
-                        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem;">Explore the deepest layer of the horoscope—the Navamsha position of the Atmakaraka and its spiritual significance.</p>
+                        <h3>Kārakāṁśa: The Soul's Seat</h3>
+                        <p>Explore the deepest layer of the horoscope—the Navamsha position of the Atmakaraka and its spiritual significance.</p>
                         <a href="articles/karakamsa.html" class="btn btn-outline btn-sm">Read Article</a>
                     </div>
                 </div>
-                <div class="article-card" style="background: var(--bg-card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-light); transition: transform 0.3s ease;" data-aos="fade-up" data-aos-delay="100">
-                    <div style="height: 200px; background: url('assets/israel_iran_astrology.jpg') center/cover;"></div>
-                    <div style="padding: 1.5rem;">
+                <div class="article-card" data-aos="fade-up" data-aos-delay="100">
+                    <div style="height: 160px; background: url('assets/israel_iran_astrology.jpg') center/cover;"></div>
+                    <div class="article-card-info">
                         <span style="color: var(--accent-gold); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Mundane</span>
-                        <h3 style="margin: 0.5rem 0 1rem; font-size: 1.4rem;">The Israel-Iran Conflict</h3>
-                        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem;">A Jyotiṣa perspective based on the allegories of Pt. Sanjay Rath regarding Rāhu and the Middle East.</p>
+                        <h3>The Israel-Iran Conflict</h3>
+                        <p>A Jyotiṣa perspective based on the allegories of Pt. Sanjay Rath regarding Rāhu and the Middle East.</p>
                         <a href="articles/israel-iran.html" class="btn btn-outline btn-sm">Read Article</a>
                     </div>
                 </div>
@@ -641,6 +641,22 @@
                         <div class="result-item">
                             <span style="display: block; font-size: 0.8rem; text-transform: uppercase; color: var(--accent-gold);">Rāśi</span>
                             <strong id="result-rashi" style="font-size: 1.2rem; color: #fff;"></strong>
+                        </div>
+                        <div class="result-item">
+                            <span style="display: block; font-size: 0.8rem; text-transform: uppercase; color: var(--accent-gold);">Sunrise</span>
+                            <strong id="result-sunrise" style="font-size: 1.2rem; color: #fff;"></strong>
+                        </div>
+                        <div class="result-item">
+                            <span style="display: block; font-size: 0.8rem; text-transform: uppercase; color: var(--accent-gold);">Sunset</span>
+                            <strong id="result-sunset" style="font-size: 1.2rem; color: #fff;"></strong>
+                        </div>
+                        <div class="result-item">
+                            <span style="display: block; font-size: 0.8rem; text-transform: uppercase; color: var(--accent-gold);">Ayanāṁśa</span>
+                            <strong id="result-ayanamsa" style="font-size: 1.2rem; color: #fff;"></strong>
+                        </div>
+                        <div class="result-item">
+                            <span style="display: block; font-size: 0.8rem; text-transform: uppercase; color: var(--accent-gold);">Hora</span>
+                            <strong id="result-hora" style="font-size: 1.2rem; color: #fff;"></strong>
                         </div>
                     </div>
                 </div>
