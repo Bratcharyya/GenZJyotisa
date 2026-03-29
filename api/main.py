@@ -242,13 +242,12 @@ def gita_chat():
         })
     except Exception as e:
         error_detail = str(e)
-        msg = "O Arjuna, the divine connection is weak. (Check your GOOGLE_API_KEY in Vercel. Error: " + error_detail + ")"
-        return jsonify({"response": msg, "shlokas": [], "status": "error"}), 500
         if "API_KEY_INVALID" in error_detail or "expired" in error_detail.lower():
-            msg += "(Your Google API Key appears to be invalid or expired. Please update it in your environment variables/Vercel settings.)"
+            msg = "O Arjuna, the divine connection is disturbed. Your Google API Key appears to be invalid or expired. Please update it in your environment variables."
         else:
-            msg += f"(Detail: {error_detail})"
-        return jsonify({"response": msg, "shlokas": []}), 500
+            msg = f"O Arjuna, the divine connection is weak. (Error: {error_detail})"
+        return jsonify({"response": msg, "shlokas": [], "status": "error"}), 500
+
 @app.route('/api/panchang', methods=['POST'])
 def calculate_panchang():
     try:
@@ -338,17 +337,23 @@ def calculate_panchang():
         yoga = yoga_names[min(yoga_num-1, 26)]
         
         karana_num = int(diff / 6) + 1
-        karana_names = ["Bava", "Balava", "Kaulava", "Taitila", "Gara", "Vanija", "Vishti", "Shakuni", "Chatushpada", "Naga", "Kintughna"]
-        if tithi_num == 1: karana = "Kintughna"
-        elif tithi_num == 60: karana = "Amavasya-Naga"
-        else: karana = karana_names[(karana_num - 2) % 7]
+        movable_karanas = ["Bava", "Balava", "Kaulava", "Taitila", "Garaja", "Vanija", "Vishti"]
+        if karana_num == 1: karana = "Kintughna"
+        elif karana_num >= 58:
+            karana = ["Shakuni", "Chatushpada", "Naga"][karana_num - 58]
+        else: karana = movable_karanas[(karana_num - 2) % 7]
+
+        # Rashi (Moon sign)
+        rashi_idx = int(sid_moon / 30)
+        rashi_names = ["Mesha (Aries)", "Vrishabha (Taurus)", "Mithuna (Gemini)", "Karkata (Cancer)", "Simha (Leo)", "Kanya (Virgo)", "Tula (Libra)", "Vrishchika (Scorpio)", "Dhanu (Sagittarius)", "Makara (Capricorn)", "Kumbha (Aquarius)", "Mina (Pisces)"]
+        rashi = rashi_names[min(rashi_idx, 11)]
         
         ayan = f"{int(ayanamsa)}° {int((ayanamsa%1)*60)}'"
         hora = vara_list[(int(jd+1.5)%7 + int(h_float)) % 7]
 
         return jsonify({
             "vara": vara, "tithi": tithi, "nakshatra": nakshatra, "yoga": yoga, 
-            "karana": karana, "sunrise": sunrise, "sunset": sunset, 
+            "karana": karana, "rashi": rashi, "sunrise": sunrise, "sunset": sunset, 
             "ayanamsa": ayan, "hora": hora
         })
     except Exception as e:

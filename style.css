@@ -1701,45 +1701,184 @@ input:focus, select:focus, textarea:focus {
     100% { transform: translateY(0px); opacity: 0.4; }
 }
 
-@media (max-width: 1200px) {
-    .container {
-        padding: 0 5%;
+/* ===== NAKSHATRA WHEEL HERO BACKGROUND ===== */
+.nakshatra-wheel-bg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(700px, 90vw);
+    height: min(700px, 90vw);
+    z-index: 0;
+    opacity: 0.6;
+    animation: rotateWheel 180s linear infinite;
+    pointer-events: none;
+}
+
+@keyframes rotateWheel {
+    from { transform: translate(-50%, -50%) rotate(0deg); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* ===== iOS / ANDROID SAFE AREAS ===== */
+@supports(padding: max(0px)) {
+    body {
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+        padding-bottom: env(safe-area-inset-bottom);
     }
+    .navbar {
+        padding-left: max(5%, env(safe-area-inset-left));
+        padding-right: max(5%, env(safe-area-inset-right));
+    }
+    .floating-wa {
+        bottom: max(30px, calc(env(safe-area-inset-bottom) + 15px));
+        right: max(20px, env(safe-area-inset-right));
+    }
+}
+
+/* ===== TOUCH-FRIENDLY GLOBAL ===== */
+button, .btn, .chip, .autocomplete-item, .faq-question, select {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.chip, .btn, button[type="submit"] {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ===== RESPONSIVE BREAKPOINTS ===== */
+@media (max-width: 1200px) {
+    .container { padding: 0 5%; }
 }
 
 @media (max-width: 768px) {
     .hero {
         padding: 10rem 1rem 4rem;
         height: auto;
-        min-height: 80vh;
+        min-height: 85vh;
     }
-    
     .hero h1 {
-        font-size: 3.2rem;
-        line-height: 1.1;
-        margin-bottom: 2.5rem;
+        font-size: clamp(2rem, 7vw, 3.2rem);
+        line-height: 1.15;
+        margin-bottom: 2rem;
     }
-
-    .hero p {
-        font-size: 1.1rem;
-        margin-bottom: 3rem;
-    }
-
+    .hero p { font-size: 1rem; margin-bottom: 2.5rem; }
     .hero-ctas {
         flex-direction: column;
-        gap: 1.2rem;
-        padding: 0 1rem;
+        gap: 1rem;
+        padding: 0 0.5rem;
     }
-
     .btn {
         width: 100%;
-        padding: 1.2rem;
-        font-size: 1rem;
+        padding: 1rem;
+        font-size: 0.95rem;
+        min-height: 48px;
+    }
+    .nakshatra-wheel-bg {
+        width: 100vw;
+        height: 100vw;
+        opacity: 0.35;
+    }
+    /* Chat window mobile */
+    #gita-chat-window {
+        height: 320px !important;
+        padding: 1rem !important;
+    }
+    .chat-bubble { max-width: 92%; }
+    .bubble-content { padding: 0.8rem 1rem; font-size: 0.95rem; }
+    .chat-avatar { width: 28px; height: 28px; }
+    .shloka-box { padding: 1rem; }
+    .shloka-text { font-size: 1.05rem; }
+
+    /* Services grid 2 columns on tablet, 1 on phone */
+    .services-grid {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.2rem;
+    }
+    .service-card { padding: 1.2rem; }
+    .service-img-wrapper { height: 100px; }
+
+    /* Panchanga / Nakshatra forms */
+    #panchang-form, #nakshatra-form {
+        grid-template-columns: 1fr !important;
+    }
+    .panchang-data-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.8rem !important;
+    }
+
+    /* Article cards */
+    .articles-section [style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Pillar cards */
+    .gita-pillars {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 0.6rem !important;
+    }
+    .pillar-card { padding: 0.6rem; }
+    .pillar-card h4 { font-size: 0.85rem; }
+    .pillar-card p { font-size: 0.65rem; }
+
+    /* Floating WA */
+    .floating-wa {
+        width: 52px;
+        height: 52px;
+        font-size: 1.6rem;
+        bottom: 20px;
+        right: 16px;
+    }
+
+    /* Payment gateway */
+    #payment-gateway {
+        padding: 2rem 1.2rem !important;
+        border-radius: 16px !important;
+    }
+    #razorpay-pay-btn {
+        font-size: 1.1rem !important;
+        height: 54px !important;
     }
 }
 
 @media (max-width: 480px) {
-    .hero h1 {
-        font-size: 2.8rem;
+    .hero h1 { font-size: clamp(1.8rem, 8vw, 2.5rem); }
+    .section-title { font-size: clamp(1.5rem, 6vw, 2rem); }
+    .devnagari-style { font-size: clamp(1.5rem, 6vw, 2.5rem) !important; }
+    .services-grid { grid-template-columns: 1fr; }
+    .highlight-cards { grid-template-columns: repeat(2, 1fr); }
+    .panchang-data-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    .gita-pillars { grid-template-columns: 1fr !important; }
+    .booking-container { padding: 1.2rem 0.8rem !important; }
+    .form-row { grid-template-columns: 1fr !important; }
+
+    /* Map section */
+    .map-wrapper { height: 200px !important; }
+
+    /* Ishta Devta */
+    .ishta-devta-image { max-width: 280px !important; }
+
+    /* News marquee compact */
+    .news-marquee-container { height: 28px; }
+    .news-header { font-size: 0.7rem; padding: 0 0.8rem; }
+    .news-content a, .news-content span { font-size: 0.7rem; }
+    .navbar { top: 28px !important; }
+}
+
+/* ===== LANDSCAPE PHONE ===== */
+@media (max-height: 500px) and (orientation: landscape) {
+    .hero { min-height: auto; padding: 6rem 2rem 2rem; }
+    .hero h1 { font-size: 2rem; }
+    #gita-chat-window { height: 250px !important; }
+}
+
+/* ===== PREVENT IOS DOUBLE-TAP ZOOM ON BUTTONS ===== */
+@media (pointer: coarse) {
+    button, .btn, a.btn, .chip {
+        touch-action: manipulation;
     }
 }
