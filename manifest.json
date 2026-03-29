@@ -8,12 +8,12 @@
   "theme_color": "#0D0D2B",
   "icons": [
     {
-      "src": "assets/zodiac.png",
+      "src": "assets/rahu_icon.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "assets/zodiac.png",
+      "src": "assets/rahu_icon.png",
       "sizes": "512x512",
       "type": "image/png"
     }

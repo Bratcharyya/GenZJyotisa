@@ -4,19 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- PWA / Mobile App Meta Tags -->
+    <link rel="icon" type="image/png" href="assets/rahu_icon.png">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0D0D2B">
-    <link rel="apple-touch-icon" href="assets/zodiac.png">
+    <link rel="apple-touch-icon" href="assets/rahu_icon.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="GenZ Jyotiṣa">
-    <title>GenZ Jyotiṣa | Vedic Astrology Consultations by Sarthak Bhattacharyya</title>
-    <meta name="description" content="Classical Vedic Astrology Consultations root in the Pārāśarī tradition. Clear, shastra-based readings for the modern generation.">
+    <title>GenZ Jyotiṣa | Vedic Astrology Consultation</title>
+    <meta name="description" content="Discover your life's blueprint through classical Vedic Astrology. Book personal consultations for career, marriage, and spiritual growth.">
     <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Laila:wght@300;400;500;600;700&family=Kalam:wght@400;700&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <!-- AOS for Animations -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -28,17 +30,23 @@
             <button class="sidebar-close" id="sidebar-close"><i class="fas fa-times"></i></button>
         </div>
         <div class="sidebar-links">
-            <a href="index.html"><i class="fas fa-home"></i> Home</a>
+            <a href="#home" class="sidebar-anchor"><i class="fas fa-home"></i> Home</a>
             <a href="tradition.html"><i class="fas fa-scroll"></i> The Tradition</a>
-            <a href="https://deva.guru" target="_blank"><i class="fas fa-calculator"></i> Calculate Birth Chart</a>
+            <a href="#panchang" class="sidebar-anchor"><i class="fas fa-om"></i> Calculate Your Own Pañcāṅga</a>
             <a href="#gita-guidance" class="sidebar-anchor"><i class="fas fa-om"></i> Talk to Lord Krishna</a>
             <a href="#about" class="sidebar-anchor"><i class="fas fa-user"></i> About Me</a>
             <hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.1); margin: 1rem 0;">
-            <a href="https://www.linkedin.com/in/sarthak-bhattacharyya-735489399/" target="_blank"><i class="fab fa-linkedin"></i> LinkedIn</a>
-            <a href="https://www.instagram.com/alpacinoismydaddy?igsh=cnh3cW4weGU3Nml1" target="_blank"><i class="fab fa-instagram"></i> Instagram</a>
-            <a href="https://wa.me/919630958614" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+            <a href="#booking" class="sidebar-anchor btn btn-primary" style="margin-bottom: 1rem;"><i class="fas fa-calendar-check"></i> Book Now</a>
+            <a href="https://www.linkedin.com/in/sarthak-bhattacharyya-735489399/" target="_blank"><i class="fa-brands fa-linkedin"></i> LinkedIn</a>
+            <a href="https://x.com/bratacharyya" target="_blank"><i class="fa-brands fa-x-twitter"></i> X (Twitter)</a>
+            <a href="https://www.instagram.com/alpacinoismydaddy?igsh=cnh3cW4weGU3Nml1" target="_blank"><i class="fa-brands fa-instagram"></i> Instagram</a>
+            <a href="https://github.com/Bratcharyya" target="_blank"><i class="fa-brands fa-github"></i> GitHub</a>
+            <a href="https://www.snapchat.com/add/bratcharyya" target="_blank"><i class="fa-brands fa-snapchat"></i> Snapchat</a>
+            <a href="https://discordapp.com/users/sarthakbhattacharyyya" target="_blank"><i class="fa-brands fa-discord"></i> Discord</a>
+            <a href="https://wa.me/919630958614" target="_blank"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
         </div>
     </aside>
+
     <!-- Breaking News Marquee -->
     <div class="news-marquee-container">
         <div class="news-header">
@@ -51,12 +59,23 @@
         </div>
     </div>
 
+
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
     <!-- Navigation -->
     <nav class="navbar" id="navbar">
-        <a href="index.html" class="nav-brand">
-            GenZ Jyotiṣa
-            <span class="nav-subtitle">Ancient Stars, Modern Souls</span>
+        <a href="index.html" class="nav-brand" style="flex-direction: row; align-items: center; gap: 0.8rem;">
+            <span style="color: var(--accent-gold); font-size: 2rem; line-height: 1;">ॐ</span>
+            <div style="display: flex; flex-direction: column;">
+                GenZ Jyotiṣa
+                <span class="nav-subtitle">Ancient Stars, Modern Souls</span>
+            </div>
         </a>
+        
+        <div class="nav-mantra" style="color: var(--accent-gold); font-family: 'Laila', serif; font-size: 1.15rem; text-align: center; flex: 1; padding: 0 1rem; letter-spacing: 1px;">
+            ॐ नमो भगवते वासुदेवाय।<br>
+            <span style="font-size: 0.95rem; opacity: 0.8; font-family: var(--font-body);">om namo bhagavate vāsudevāya</span>
+        </div>
         
         <div class="nav-extra">
             <button class="sidebar-toggle" id="sidebar-toggle-btn" aria-label="Menu">
@@ -71,9 +90,8 @@
             <a href="index.html">Home</a>
             <a href="#about">About</a>
             <a href="#services">Services</a>
+            <a href="#insights">Articles</a>
             <a href="tradition.html">The Tradition</a>
-            <!-- <a href="#insights">Insights</a> -->
-            <a href="#booking" class="btn btn-primary">Book Now</a>
         </div>
     </nav>
 
@@ -85,13 +103,9 @@
             <h1>Know your soul, heal yourself,<br>embrace your destiny.</h1>
             <p>Classical Vedic Astrology Consultations by <strong><em>Sarthak Bhattacharyya</em></strong></p>
             <div class="hero-ctas">
-                <a href="#booking" class="btn btn-primary">Book a Consultation</a>
+                <a href="#booking" class="btn btn-outline">Book a Consultation</a>
                 <a href="tradition.html" class="btn btn-outline">Learn About Jyotiṣa</a>
             </div>
-        </div>
-        <div class="scroll-indicator">
-            <span>Scroll Down</span>
-            <i class="fas fa-chevron-down"></i>
         </div>
     </section>
 
@@ -125,7 +139,8 @@
                     <div class="interests-box" style="margin-top: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.03); border-radius: 12px; border-left: 3px solid var(--accent-gold);">
                         <h3 style="font-family: var(--font-body); font-weight: 800; font-size: 1.8rem; margin-bottom: 1.2rem; color: var(--accent-gold); letter-spacing: -0.5px;">My Interests 💀</h3>
                         <p style="font-size: 0.95rem; margin-bottom: 0.5rem;"><strong>Hobbies:</strong> Cinema, Indian Polity, Global Geopolitics & Japanese Origami</p>
-                        <p style="font-size: 0.95rem;"><strong>Favorite Actors:</strong> Al Pacino, Jack Nicholson & Manoj Bajpayee</p>
+                        <p style="font-size: 0.95rem; margin-bottom: 0.5rem;"><strong>Favorite Actors:</strong> Al Pacino, Jack Nicholson & Manoj Bajpayee</p>
+                        <p style="font-size: 0.95rem;"><a href="https://x.com/bratacharyya" target="_blank" style="color: var(--accent-gold); text-decoration: underline;">see my real self 😹</a></p>
                     </div>
                     
                     <div class="highlight-cards">
@@ -147,14 +162,14 @@
                         </div>
                     </div>
                     
-                    <img src="assets/parashara.png" alt="Maharishi Parashara" class="parashara-img" data-aos="zoom-in" data-aos-delay="200">
+                    <img src="assets/parashara_8k.png" alt="Maharishi Parashara" class="parashara-img" data-aos="zoom-in" data-aos-delay="200" style="width: 80%; display: block; margin: 1rem auto; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
                 </div>
             </div>
         </div>
     </section>
 
     <!-- My Ishta Devta Section -->
-    <section id="ishta-devta" class="ishta-devta section-padding" style="background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('assets/ishta-devta.png'); background-size: cover; background-position: center; border-bottom: 2px solid var(--accent-gold);">
+    <section id="ishta-devta" class="section-padding">
         <div class="container ishta-devta-container">
             <div class="ishta-devta-image">
                 <img src="assets/ishta-devta.png" alt="Lord Kartikeya">
@@ -181,7 +196,11 @@
         <div class="container">
             <h2 class="section-title" data-aos="fade-up">Consultations</h2>
             <div class="services-grid">
+                <!-- Service: Quick Consultation -->
                 <div class="service-card" data-aos="zoom-in" data-aos-delay="50">
+                    <div class="service-img-wrapper">
+                        <img src="assets/ganesha_quick_1774753598390.png" alt="Lord Ganesha" class="service-deity-img">
+                    </div>
                     <i class="fas fa-bolt service-icon"></i>
                     <h3>Quick Consultation</h3>
                     <p>Brief analysis for urgent queries or single-question focus.</p>
@@ -191,8 +210,11 @@
                     </div>
                 </div>
 
-                <!-- Service 1 -->
+                <!-- Service: Natal Chart Reading -->
                 <div class="service-card" data-aos="zoom-in" data-aos-delay="100">
+                    <div class="service-img-wrapper">
+                        <img src="assets/brahma_natal_1774753615250.png" alt="Lord Brahma" class="service-deity-img">
+                    </div>
                     <i class="fas fa-star-and-crescent service-icon"></i>
                     <h3>Natal Chart Reading</h3>
                     <p>Deep dive into your complete birth chart, life purpose, and general trajectory.</p>
@@ -202,10 +224,13 @@
                     </div>
                 </div>
                 
-                <!-- Service 2 -->
+                <!-- Service: Natal Chart Reading (Extended) -->
                 <div class="service-card" data-aos="zoom-in" data-aos-delay="200">
+                    <div class="service-img-wrapper">
+                        <img src="assets/shiva_natal_ext_1774753635767.png" alt="Lord Shiva" class="service-deity-img">
+                    </div>
                     <i class="fas fa-star-and-crescent service-icon"></i>
-                    <h3>Natal Chart Reading (Extended)</h3>
+                    <h3>Natal Chart (Extended)</h3>
                     <p>Comprehensive analysis including detailed divisional charts and remedies.</p>
                     <div class="service-meta">
                         <span class="duration"><i class="far fa-clock"></i> 60 min</span>
@@ -213,8 +238,11 @@
                     </div>
                 </div>
 
-                <!-- Service 3 -->
+                <!-- Service: Career & Finance -->
                 <div class="service-card" data-aos="zoom-in" data-aos-delay="300">
+                    <div class="service-img-wrapper">
+                        <img src="assets/lakshmi_career_1774753653504.png" alt="Goddess Lakshmi" class="service-deity-img">
+                    </div>
                     <i class="fas fa-briefcase service-icon"></i>
                     <h3>Career & Finance (Daśā)</h3>
                     <p>Focus on professional growth, wealth accumulation, and current time periods.</p>
@@ -224,8 +252,11 @@
                     </div>
                 </div>
 
-                <!-- Service 4 -->
+                <!-- Service: Relationship Compatibility -->
                 <div class="service-card" data-aos="zoom-in" data-aos-delay="400">
+                    <div class="service-img-wrapper">
+                        <img src="assets/radha_krishna_love_1774753672070.png" alt="Radha Krishna" class="service-deity-img">
+                    </div>
                     <i class="fas fa-heart service-icon"></i>
                     <h3>Relationship Compatibility</h3>
                     <p>Synastry and Navāṁśa analysis for marriage and partnerships.</p>
@@ -235,168 +266,257 @@
                     </div>
                 </div>
 
-                <!-- Service 5 -->
+                <!-- Service: Muhūrta -->
                 <div class="service-card" data-aos="zoom-in" data-aos-delay="500">
+                    <div class="service-img-wrapper">
+                        <img src="assets/surya_muhurta_1774753686741.png" alt="Lord Surya" class="service-deity-img">
+                    </div>
                     <i class="fas fa-hourglass-half service-icon"></i>
                     <h3>Muhūrta — Auspicious Timing</h3>
                     <p>Finding the perfect cosmic window for weddings, business, or major events.</p>
                     <div class="service-meta">
-                        <span class="duration"><i class="far fa-clock"></i> 45 min</span>
+                        <span class="duration"><i class="far fa-clock"></i> 30 min</span>
                         <span class="price">₹501</span>
                     </div>
                 </div>
 
-                <!-- Service 6 -->
+                <!-- Service: Prashna -->
                 <div class="service-card" data-aos="zoom-in" data-aos-delay="600">
+                    <div class="service-img-wrapper">
+                        <img src="assets/hanuman_prashna_1774753701502.png" alt="Lord Hanuman" class="service-deity-img">
+                    </div>
                     <i class="fas fa-question-circle service-icon"></i>
                     <h3>Prashna (Horary)</h3>
                     <p>Answering a specific, pressing question based on the exact time it is asked.</p>
                     <div class="service-meta">
-                        <span class="duration"><i class="far fa-clock"></i> 45 min</span>
+                        <span class="duration"><i class="far fa-clock"></i> 30 min</span>
                         <span class="price">₹501</span>
+                    </div>
+                </div>
+
+                <!-- Service: Artomancy -->
+                <div class="service-card" data-aos="zoom-in" data-aos-delay="700">
+                    <div class="service-img-wrapper">
+                        <img src="assets/vishnu_varsha_1774753717703.png" alt="Lord Vishnu" class="service-deity-img">
+                    </div>
+                    <i class="fas fa-palette service-icon"></i>
+                    <h3>Artomancy</h3>
+                    <p>Sacred art interpretation, divination, and intuitive symbolic reading.</p>
+                    <div class="service-meta">
+                        <span class="duration"><i class="far fa-clock"></i> 60 min</span>
+                        <span class="price">₹1001</span>
+                    </div>
+                </div>
+
+                <!-- Service: Dream Interpretation -->
+                <div class="service-card" data-aos="zoom-in" data-aos-delay="800">
+                    <div class="service-img-wrapper">
+                        <img src="assets/vishnu_nidra_dreams_1774753737372.png" alt="Lord Vishnu" class="service-deity-img">
+                    </div>
+                    <i class="fas fa-moon service-icon"></i>
+                    <h3>Dream Interpretation</h3>
+                    <p>A sacred, intuitive deep dive into your dream world and subconscious messages.</p>
+                    <div class="service-meta">
+                        <span class="duration"><i class="far fa-clock"></i> 60 min</span>
+                        <span class="price">₹1001</span>
                     </div>
                 </div>
             </div>
             <p class="service-note" data-aos="fade-up" data-aos-delay="700">
-                <em>*All consultations are conducted via Google Meet. Link sent after payment confirmation.</em>
+                * All consultations are conducted 1-on-1 via Google Meet. Recording and birth charts provided.
             </p>
         </div>
     </section>
 
-    <!-- How It Works Section -->
-    <section class="how-it-works section-padding" id="how-it-works">
+    <!-- Lord Krishna AI Guide -->
+    <section class="section-padding" id="gita-guidance">
         <div class="container">
-            <h2 class="section-title" data-aos="fade-up">How It Works</h2>
-            <div class="timeline">
-                <div class="timeline-item" data-aos="fade-right" data-aos-delay="100">
-                    <div class="timeline-dot">1</div>
-                    <div class="timeline-content">
-                        <h3>Fill the Booking Form</h3>
-                        <p>Submit your birth details and select your preferred consultation type.</p>
+            <div class="gita-container" data-aos="fade-up">
+                <div class="gita-header">
+                    <div class="gita-image-wrapper">
+                        <img src="assets/gita-guidance.png" alt="Lord Krishna" style="width: 100%; display: block;">
                     </div>
-                </div>
-                <div class="timeline-item" data-aos="fade-left" data-aos-delay="200">
-                    <div class="timeline-dot">2</div>
-                    <div class="timeline-content">
-                        <h3>Instant UPI Payment</h3>
-                        <p>Pay ₹309, ₹501 or ₹1001 instantly via the provided QR code or UPI ID shown in the booking portal.</p>
-                    </div>
-                </div>
-                <div class="timeline-item" data-aos="fade-right" data-aos-delay="300">
-                    <div class="timeline-dot">3</div>
-                    <div class="timeline-content">
-                        <h3>Get Your Slot</h3>
-                        <p>Share the screenshot via WhatsApp. Your consultation slot is confirmed immediately upon verification.</p>
-                    </div>
-                </div>
-                <div class="timeline-item" data-aos="fade-left" data-aos-delay="400">
-                    <div class="timeline-dot">4</div>
-                    <div class="timeline-content">
-                        <h3>Join the Sanctuary</h3>
-                        <p>Open the permanent Meet link <strong style="color:var(--accent-gold);">gbg-tsbj-aut</strong> at your scheduled time. No waiting on emails.</p>
-                    </div>
-                </div>
-                <div class="timeline-item" data-aos="fade-right" data-aos-delay="500">
-                    <div class="timeline-dot">5</div>
-                    <div class="timeline-content">
-                        <h3>Your Consultation</h3>
-                        <p>Join the video call at your scheduled time. Notes shared afterward if applicable.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Blog/Insights Section (Hidden for now until real articles are added) -->
-    <!--
-    <section class="insights section-padding" id="insights" style="background: rgba(201, 168, 76, 0.02); border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light);">
-        <div class="container">
-            <h2 class="section-title" data-aos="fade-up">Research & Insights</h2>
-            <div class="services-grid">
-                <div class="service-card" data-aos="fade-up" data-aos-delay="100" style="padding: 2rem;">
-                    <i class="fas fa-book-open service-icon" style="font-size: 1.8rem;"></i>
-                    <h3 style="font-size: 1.3rem;">Understanding the Daśā System</h3>
-                    <p style="margin-bottom: 1rem; min-height: 48px;">An in-depth analysis of planetary periods and their timing in a native's life.</p>
-                    <div style="border-top: 1px solid var(--border-light); padding-top: 1rem;">
-                        <span style="font-size: 0.8rem; color: var(--text-secondary);"><i class="far fa-calendar-alt"></i> Jan 15, 2025</span>
-                        <a href="#insights" style="float: right; color: var(--accent-gold); font-size: 0.9rem; font-weight: 500;">Read Article →</a>
-                    </div>
+                    <h2 class="devnagari-style">Seek Guidance from Gītā 🦚</h2>
+                    <p>Share your emotional state or current struggle. Lord Krishna will guide you through the wisdom of the Shlokas.</p>
                 </div>
                 
-                <div class="service-card" data-aos="fade-up" data-aos-delay="200" style="padding: 2rem;">
-                    <i class="fas fa-book-open service-icon" style="font-size: 1.8rem;"></i>
-                    <h3 style="font-size: 1.3rem;">The Role of Navāṁśa</h3>
-                    <p style="margin-bottom: 1rem; min-height: 48px;">Exploring the D-9 chart and its profound significance in charting life path.</p>
-                    <div style="border-top: 1px solid var(--border-light); padding-top: 1rem;">
-                        <span style="font-size: 0.8rem; color: var(--text-secondary);"><i class="far fa-calendar-alt"></i> Jan 02, 2025</span>
-                        <a href="#insights" style="float: right; color: var(--accent-gold); font-size: 0.9rem; font-weight: 500;">Read Article →</a>
+                <div id="gita-chat-window" class="chat-wrapper" style="height: 400px; overflow-y: auto; padding: 1.5rem; background: rgba(0,0,0,0.3); border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid rgba(255,213,79,0.1);">
+                    <div class="chat-bubble bot">
+                        <img src="assets/gita-guidance.png" class="chat-avatar" alt="Krishna">
+                        <div class="bubble-content">
+                            Pranām! How may I assist you on your spiritual path today?
+                        </div>
                     </div>
                 </div>
 
-                <div class="service-card" data-aos="fade-up" data-aos-delay="300" style="padding: 2rem;">
-                    <i class="fas fa-book-open service-icon" style="font-size: 1.8rem;"></i>
-                    <h3 style="font-size: 1.3rem;">Remedies in Jyotiṣa</h3>
-                    <p style="margin-bottom: 1rem; min-height: 48px;">A closer look at classical and practical remedies for difficult planetary placements.</p>
-                    <div style="border-top: 1px solid var(--border-light); padding-top: 1rem;">
-                        <span style="font-size: 0.8rem; color: var(--text-secondary);"><i class="far fa-calendar-alt"></i> Dec 20, 2024</span>
-                        <a href="#insights" style="float: right; color: var(--accent-gold); font-size: 0.9rem; font-weight: 500;">Read Article →</a>
-                    </div>
+                <div class="chat-input-area" style="display: flex; gap: 1rem; background: rgba(255,255,255,0.05); padding: 0.5rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                    <input type="text" id="gita-chat-input" placeholder="e.g., I am feeling anxious about my future..." style="flex: 1; background: transparent; border: none; color: #fff; padding: 1rem; outline: none;" />
+                    <button onclick="sendGitaChat()" class="btn btn-primary" style="padding: 0 2rem; border-radius: 8px;"><i class="fas fa-paper-plane"></i></button>
                 </div>
-            </div>
-            <div style="text-align: center; margin-top: 1rem;" data-aos="zoom-in">
-                <a href="#insights" class="btn btn-outline" style="padding: 0.8rem 2.5rem;">View All Articles (Coming Soon)</a>
-            </div>
-        </div>
-    </section>
-    -->
-
-
-
-    <!-- Gita Guidance Section -->
-    <section id="gita-guidance" class="gita-guidance section-padding" style="background: linear-gradient(rgba(13,13,43,0.85), rgba(13,13,43,0.85)), url('assets/gita-guidance.png'); background-size: cover; background-position: center; border-bottom: 2px solid var(--accent-gold);">
-        <div class="container" style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 4rem; align-items: center;">
-             <div class="gita-content" data-aos="fade-left">
-                <h2 class="devnagari-style" style="font-size: 2.5rem; margin-bottom: 1.5rem; color: var(--accent-gold);">Bhagavad Gītā Guidance</h2>
-                
-                <!-- Integrated Tabs -->
-                <div class="gita-tabs" style="display: flex; gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid rgba(255,213,79,0.2);">
-                    <button class="gita-tab-btn active" onclick="switchGitaTab('verses')" style="background:none; border:none; border-bottom: 2px solid var(--accent-gold); color:var(--accent-gold); padding:0.5rem 1rem; cursor:pointer;">🕉️ Guidance</button>
-                    <button class="gita-tab-btn" onclick="switchGitaTab('chat')" style="background:none; border:none; color:#b0a4d4; padding:0.5rem 1rem; cursor:pointer;">🙏 Chat</button>
-                </div>
-
-                <!-- Verse Guidance Content -->
-                <div id="gita-verses-ui">
-                    <p style="margin-bottom: 1.5rem; line-height: 1.6;">How are you feeling today? Seek wisdom for your dilemma.</p>
-                    <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-                        <input type="text" id="feeling-input" placeholder="e.g. I feel lost in my career..." style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(139,92,246,0.3); color:white; padding:0.8rem; border-radius:8px;">
-                        <button class="btn btn-primary" onclick="getGitaGuidance()" style="padding:0 1.5rem;">✨ Ask</button>
-                    </div>
-                    <div id="gita-guidance-results" style="max-height: 300px; overflow-y: auto;"></div>
-                </div>
-
-                <!-- Chatbot Content -->
-                <div id="gita-chat-ui" style="display: none;">
-                    <div id="gita-chat-window" style="height: 250px; overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; font-size: 0.95rem; border: 1px solid rgba(139,92,246,0.1);">
-                        <div style="color:var(--accent-gold); margin-bottom:0.5rem;">🙏 Lord Krishna: Welcome, Arjuna. What doubts cloud your mind?</div>
-                    </div>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <input type="text" id="gita-chat-input" placeholder="Ask Krishna..." onkeypress="if(event.key==='Enter') sendGitaChat()" style="flex:1; background:rgba(0,0,0,0.3); border:1px solid rgba(139,92,246,0.3); color:white; padding:0.8rem; border-radius:8px;">
-                        <button class="btn btn-primary" onclick="sendGitaChat()"><i class="fas fa-paper-plane"></i></button>
-                    </div>
-                </div>
-            </div>
-            <div class="gita-image-wrapper">
-                <img src="assets/gita-guidance.png" alt="Krishna and Arjuna" style="width: 100%; display: block;">
             </div>
         </div>
     </section>
 
-    <!-- Calculate Kundli Section -->
-    <section class="kundli-segment" style="background: linear-gradient(135deg, rgba(30, 11, 14, 0.9), rgba(64, 13, 22, 0.9)); padding: 4rem 1rem; text-align: center; border-bottom: 1px solid var(--accent-gold);">
+    <!-- Booking Section -->
+    <section class="booking section-padding" id="booking">
         <div class="container">
-            <h2 class="devnagari-style" style="font-size: 2.5rem; margin-bottom: 1.5rem; color: var(--accent-gold); text-shadow: 0 0 10px rgba(212,175,55,0.4);">Calculate Your Own Kundli</h2>
-            <p style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">Generate a comprehensive birth chart immediately using the world's most precise calculation engine.</p>
-            <a href="https://deva.guru" target="_blank" class="btn btn-outline" style="font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 600;">Launch Deva.Guru <i class="fas fa-external-link-alt"></i></a>
+            <h2 class="section-title" data-aos="fade-up">Book Your Consultation</h2>
+            
+            <div class="booking-container">
+                <!-- How it works Side -->
+                <div class="contact-info" data-aos="fade-right">
+                    <h3 style="color: var(--accent-gold); margin-bottom: 1.5rem; font-size: 2rem;">How it works ✺</h3>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 1.2rem; display: flex; gap: 1rem; align-items: flex-start;">
+                            <i class="fas fa-1" style="color: var(--accent-gold); border: 1px solid var(--accent-gold); border-radius: 50%; width: 20px; height: 20px; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 4px;"></i>
+                            <span>Fill out your accurate birth details (Sex, Date, Time & Place).</span>
+                        </li>
+                        <li style="margin-bottom: 1.2rem; display: flex; gap: 1rem; align-items: flex-start;">
+                            <i class="fas fa-2" style="color: var(--accent-gold); border: 1px solid var(--accent-gold); border-radius: 50%; width: 20px; height: 20px; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 4px;"></i>
+                            <span>Select your required consultation type and complete the secure payment.</span>
+                        </li>
+                        <li style="margin-bottom: 1.2rem; display: flex; gap: 1rem; align-items: flex-start;">
+                            <i class="fas fa-3" style="color: var(--accent-gold); border: 1px solid var(--accent-gold); border-radius: 50%; width: 20px; height: 20px; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 4px;"></i>
+                            <span>You will be instantly redirected to WhatsApp with your details.</span>
+                        </li>
+                        <li style="margin-bottom: 1.2rem; display: flex; gap: 1rem; align-items: flex-start;">
+                            <i class="fas fa-4" style="color: var(--accent-gold); border: 1px solid var(--accent-gold); border-radius: 50%; width: 20px; height: 20px; font-size: 0.8rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 4px;"></i>
+                            <span>Once verified, we will fix a calendar slot for our Google Meet session.</span>
+                        </li>
+                    </ul>
+                    
+                    <!-- My Roots - Ancestral Location -->
+                    <div class="map-section" style="margin-top: 2rem;">
+                        <h4 style="color: var(--accent-gold); margin-bottom: 1rem; font-size: 1.5rem; font-family: var(--font-body); font-weight: 800; letter-spacing: -0.5px;">My roots 💜</h4>
+                        <div class="map-wrapper" style="border-radius: 12px; overflow: hidden; border: 2px solid var(--accent-gold); height: 260px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); background: rgba(0,0,0,0.2);">
+                            <iframe 
+                                src="https://maps.google.com/maps?q=21.276138,81.700066&t=&z=13&ie=UTF8&iwloc=&output=embed"
+                                width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+                            </iframe>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Booking Form Side -->
+                <div class="booking-form-wrapper" data-aos="fade-left">
+                    <form id="booking-form" action="/submit_booking" method="POST">
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" name="name" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Sex</label>
+                                <select name="sex" required>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>WhatsApp Number</label>
+                                <input type="tel" name="whatsapp" required>
+                            </div>
+                        </div>
+                        
+                        <h4 class="form-section-title">Birth Details</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Date of Birth</label>
+                                <input type="text" id="dob-input" name="dob" required placeholder="DD / MM / YYYY" class="dob-format" maxlength="14">
+                            </div>
+                            <div class="form-group">
+                                <label>Time of Birth</label>
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <input type="text" id="tob-input" name="tob" required placeholder="HH : MM : SS" class="tob-format" maxlength="10" style="flex: 1;">
+                                    <select id="ampm-select" name="ampm" style="width: 80px; padding: 0.5rem;" required>
+                                        <option value="AM">AM</option>
+                                        <option value="PM">PM</option>
+                                    </select>
+                                </div>
+                                <small>Please be exact.</small>
+                            </div>
+                        </div>
+                        <div class="form-group" style="position: relative;">
+                            <label>Place of Birth</label>
+                            <input type="text" id="pob-input" name="pob" required placeholder="Search current or birth city..." autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false">
+                            <div id="pob-dropdown" style="display:none; position:absolute; width:100%; max-height: 250px; overflow-y: auto; background: var(--bg-dark); border: 1px solid var(--border-light); border-top: none; border-radius: 0 0 8px 8px; z-index: 1000; padding: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.5); -webkit-overflow-scrolling: touch;"></div>
+                            <input type="hidden" name="pob_lat" id="pob-lat">
+                            <input type="hidden" name="pob_lon" id="pob-lon">
+                        </div>
+
+                        <h4 class="form-section-title">Consultation</h4>
+                        <div class="form-group">
+                            <label>Select Service</label>
+                            <select name="service" required id="service-select">
+                                <option value="">Select a Consultation...</option>
+                                <option value="quick-30min" data-price="309">Quick Consultation (30 min) — ₹309</option>
+                                <option value="natal-45min" data-price="501">Natal Chart Reading (45 min) — ₹501</option>
+                                <option value="natal-60min" data-price="1001">Natal Chart (Extended - 60 min) — ₹1001</option>
+                                <option value="career-45min" data-price="501">Career & Finance (45 min) — ₹501</option>
+                                <option value="love-60min" data-price="1001">Relationship Synastry (60 min) — ₹1001</option>
+                                <option value="muhurta-45min" data-price="501">Muhūrta Selection (30 min) — ₹501</option>
+                                <option value="prashna-45min" data-price="501">Prashna (30 min) — ₹501</option>
+                                <option value="artomancy-60min" data-price="1001">Artomancy (60 min) — ₹1001</option>
+                                <option value="dreams-60min" data-price="1001">Dream Interpretation (60 min) — ₹1001</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Main Question / Area of Focus <span style="font-size: 0.8rem; opacity: 0.7;">(Optional)</span></label>
+                            <textarea name="question" rows="4" placeholder="Please list at least 3 specific questions or areas you'd like me to focus on. (e.g., Career, Marriage, Health)"></textarea>
+                            <small>Although the consultation is open-ended, specific questions help narrow down the reading.</small>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block" style="width: 100%; border-radius: 8px; height: 50px; font-weight: 600;">VERIFY & BOOK CONSULTATION</button>
+                    </form>
+
+                    <!-- Aesthetic Razorpay Payment Gateway -->
+                    <div id="payment-gateway" style="display:none; text-align:center; padding: 3.5rem 2rem; background: rgba(13, 13, 43, 0.7); border: 2px solid var(--accent-gold); border-radius: 20px; margin-top: 3rem; box-shadow: 0 0 50px rgba(212,175,55,0.15); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
+                        <div style="margin-bottom: 2rem;">
+                            <h3 style="color: var(--accent-gold); margin-bottom: 0.8rem; font-size: 2.2rem; font-family: var(--font-body); font-weight: 800; letter-spacing: -1px;">
+                                <i class="fas fa-shield-check"></i> Secure Checkout
+                            </h3>
+                            <p style="color: #b0a4d4; font-size: 1.1rem; max-width: 500px; margin: 0 auto; line-height: 1.5;">
+                                Complete your booking securely via Razorpay. All major UPI, Credit/Debit cards, and Net Banking are supported.
+                            </p>
+                        </div>
+                        
+                        <div style="max-width: 440px; margin: 0 auto 3rem; background: rgba(255, 255, 255, 0.03); padding: 2rem; border-radius: 16px; border: 1px solid rgba(255,213,79,0.2); box-shadow: inset 0 0 20px rgba(255,255,255,0.02);">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 1.1rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.8rem;">
+                                <span style="color: #b0a4d4; font-weight: 500;">Consultation Plan:</span>
+                                <span id="pay-service-name" style="font-weight:700; color:var(--text-primary); text-align: right;"></span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="color: #b0a4d4; font-weight: 500;">Service Fee:</span>
+                                <strong style="color: var(--accent-gold); font-size: 1.8rem; text-shadow: 0 0 15px rgba(212,175,55,0.4);">
+                                    ₹<span id="pay-amount"></span>
+                                </strong>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; align-items: center; gap: 1.5rem;">
+                            <button type="button" class="btn btn-primary" id="razorpay-pay-btn" style="width: 100%; max-width: 380px; height: 60px; font-size: 1.3rem; border-radius: 30px; background: linear-gradient(135deg, #FFD54F, #C9A84C); color: #0d0d2b; font-weight: 900; box-shadow: 0 10px 20px rgba(212,175,55,0.3); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: transform 0.2s ease;" onclick="proceedToRazorpay()">
+                                <i class="fas fa-credit-card"></i> Pay via Razorpay
+                            </button>
+                            
+                            <div style="display: flex; align-items: center; gap: 1.5rem; filter: grayscale(1) opacity(0.6); margin-top: 0.5rem;">
+                                <i class="fab fa-cc-visa fa-2x"></i>
+                                <i class="fab fa-cc-mastercard fa-2x"></i>
+                                <i class="fab fa-google-pay fa-2x"></i>
+                                <i class="fas fa-mobile-alt fa-2x"></i>
+                            </div>
+
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); max-width: 450px; line-height: 1.5;">
+                                <i class="fas fa-lock" style="color: #4CAF50;"></i> Encrypted & Secure Payment Gateway.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div id="form-message" style="display:none; margin-top:20px; padding:15px; background:rgba(201,168,76,0.1); border-left:4px solid var(--accent-gold);">
+                        Payment Verified! You've been redirected to WhatsApp.
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -414,158 +534,84 @@
                         <a href="articles/karakamsa.html" class="btn btn-outline btn-sm">Read Article</a>
                     </div>
                 </div>
+                <div class="article-card" style="background: var(--bg-card); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-light); transition: transform 0.3s ease;" data-aos="fade-up" data-aos-delay="100">
+                    <div style="height: 200px; background: url('assets/israel_iran_astrology.jpg') center/cover;"></div>
+                    <div style="padding: 1.5rem;">
+                        <span style="color: var(--accent-gold); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Mundane</span>
+                        <h3 style="margin: 0.5rem 0 1rem; font-size: 1.4rem;">The Israel-Iran Conflict</h3>
+                        <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1.5rem;">A Jyotiṣa perspective based on the allegories of Pt. Sanjay Rath regarding Rāhu and the Middle East.</p>
+                        <a href="articles/israel-iran.html" class="btn btn-outline btn-sm">Read Article</a>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- Contact & Booking Section -->
-    <section class="booking section-padding" id="booking">
+    <!-- Pañcāṅga Calculator Section -->
+    <section class="panchang-segment section-padding" id="panchang" style="background: rgba(255, 213, 79, 0.05); border-top: 1px solid var(--border-light); border-bottom: 1px solid var(--border-light);">
         <div class="container">
-            <h2 class="section-title" data-aos="fade-up">Book Your Consultation</h2>
-            
-            <div class="booking-container">
-                <!-- Contact Info Side -->
-                <div class="contact-info" data-aos="fade-right">
-                    <h3>Get in Touch</h3>
-                    <p>Select your consultation type and submit your details to initiate a booking.</p>
-                    <div class="contact-methods">
-                        <p><i class="fab fa-whatsapp"></i> +91 9630958614</p>
-                         <p><i class="fas fa-envelope"></i> sarthakbhattacharyyya@gmail.com</p>
-                        <p><i class="fas fa-map-marker-alt"></i> Online (Google Meet)</p>
-                        <p><i class="fab fa-linkedin"></i> <a href="https://www.linkedin.com/in/sarthak-bhattacharyya-735489399/" target="_blank" style="color: var(--text-secondary); text-decoration: none;">Professional Profile</a></p>
+            <h2 class="devnagari-style" style="text-align: center; font-size: 2.8rem; margin-bottom: 2rem;">Calculate Your Own Pañcāṅga</h2>
+            <div style="background: var(--bg-card); border: 1px solid var(--accent-gold); border-radius: 20px; padding: 2.5rem; max-width: 800px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+                <form id="panchang-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="text" id="panchang-dob" placeholder="DD / MM / YYYY" class="panchang-input dob-format" required maxlength="14">
                     </div>
-                    
-                    <!-- My Roots - Ancestral Location -->
-                    <div class="map-section" style="margin-top: 1.5rem;">
-                        <h4 style="color: var(--accent-gold); margin-bottom: 1rem; font-size: 1.5rem; font-family: var(--font-body); font-weight: 800; letter-spacing: -0.5px;">My roots 💜</h4>
-                        <div class="map-wrapper" style="border-radius: 12px; overflow: hidden; border: 2px solid var(--accent-gold); height: 260px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); background: rgba(0,0,0,0.2);">
-                            <iframe 
-                                src="https://maps.google.com/maps?q=21.276138,81.700066&t=&z=13&ie=UTF8&iwloc=&output=embed"
-                                width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
-                            </iframe>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Booking Form Side -->
-                <div class="booking-form-wrapper" data-aos="fade-left">
-                    <form id="booking-form" action="/submit_booking" method="POST">
-                        <div class="form-group">
-                            <label>Full Name</label>
-                            <input type="text" name="name" required>
-                        </div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Email Address</label>
-                                <input type="email" name="email" required>
-                            </div>
-                            <div class="form-group">
-                                <label>WhatsApp Number</label>
-                                <input type="tel" name="whatsapp" required>
-                            </div>
-                        </div>
-                        
-                        <h4 class="form-section-title">Birth Details</h4>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label>Date of Birth</label>
-                                <input type="text" id="dob-input" name="dob" required placeholder="DD / MM / YYYY" maxlength="14">
-                            </div>
-                            <div class="form-group">
-                                <label>Time of Birth</label>
-                                <div style="display: flex; gap: 0.5rem;">
-                                    <input type="text" id="tob-input" name="tob" required placeholder="HH : MM : SS" maxlength="10" style="flex: 1;">
-                                    <select id="ampm-select" name="ampm" style="width: 80px; padding: 0.5rem;" required>
-                                        <option value="AM">AM</option>
-                                        <option value="PM">PM</option>
-                                    </select>
-                                </div>
-                                <small>Please be exact.</small>
-                            </div>
-                        </div>
-                        <div class="form-group" style="position: relative;">
-                            <label>Place of Birth (City, State, Country)</label>
-                            <input type="text" id="pob-input" name="pob" required placeholder="e.g., Delhi, Delhi, India" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false">
-                            <div id="pob-dropdown" style="display:none; position:absolute; width:100%; max-height: 250px; overflow-y: auto; background: var(--bg-dark); border: 1px solid var(--border-light); border-top: none; border-radius: 0 0 8px 8px; z-index: 1000; padding: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.5); -webkit-overflow-scrolling: touch;"></div>
-                            <input type="hidden" name="pob_lat" id="pob-lat">
-                            <input type="hidden" name="pob_lon" id="pob-lon">
-                        </div>
-
-                        <h4 class="form-section-title">Consultation</h4>
-                        <div class="form-group">
-                            <label>Select Service</label>
-                            <select name="service" required id="service-select">
-                                <option value="">Select a Consultation...</option>
-                                <option value="quick-30min" data-price="309">Quick Consultation (30 min) — ₹309</option>
-                                <option value="natal-45min" data-price="501">Natal Chart Reading (45 min) — ₹501</option>
-                                <option value="natal-60min" data-price="1001">Natal Chart (Extended - 60 min) — ₹1001</option>
-                                <option value="career-45min" data-price="501">Career & Finance (45 min) — ₹501</option>
-                                <option value="love-60min" data-price="1001">Relationship Synastry (60 min) — ₹1001</option>
-                                <option value="muhurta-45min" data-price="501">Muhūrta Selection (45 min) — ₹501</option>
-                                <option value="prashna-45min" data-price="501">Prashna (Specific Query) — ₹501</option>
+                    <div class="form-group">
+                        <label>Time</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="text" id="panchang-tob" placeholder="HH : MM : SS" class="panchang-input tob-format" required maxlength="10">
+                            <select id="panchang-ampm" class="panchang-input" style="width: 80px;">
+                                <option value="AM">AM</option>
+                                <option value="PM">PM</option>
                             </select>
                         </div>
-                        
-                        <div class="form-group">
-                            <label>Main Question / Area of Focus <span style="font-size: 0.8rem; opacity: 0.7;">(Optional)</span></label>
-                            <textarea name="question" rows="4" placeholder="Please list at least 3 specific questions or areas you'd like me to focus on. (e.g., Career, Marriage, Health)"></textarea>
-                            <small>Although the consultation is open-ended, specific questions help narrow down the reading.</small>
-                        </div>
-
-                        <button type="submit" class="btn btn-prima                    <!-- Aesthetic Razorpay Payment Gateway -->
-                    <div id="payment-gateway" style="display:none; text-align:center; padding: 3.5rem 2rem; background: rgba(13, 13, 43, 0.7); border: 2px solid var(--accent-gold); border-radius: 20px; margin-top: 3rem; box-shadow: 0 0 50px rgba(212,175,55,0.15); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
-                        <div style="margin-bottom: 2rem;">
-                            <h3 style="color: var(--accent-gold); margin-bottom: 0.8rem; font-size: 2.2rem; font-family: var(--font-body); font-weight: 800; letter-spacing: -1px;">
-                                <i class="fas fa-shield-check"></i> Secure Checkout
-                            </h3>
-                            <p style="color: #b0a4d4; font-size: 1.1rem; max-width: 500px; margin: 0 auto; line-height: 1.5;">
-                                Complete your booking securely via Razorpay. All major UPI, Credit/Debit cards, and Net Banking are supported.
-                            </p>
-                        </div>
-                        
-                        <div style="max-width: 440px; margin: 0 auto 3rem; background: rgba(255, 255, 255, 0.03); padding: 2rem; border-radius: 16px; border: 1px solid rgba(255,213,79,0.2); box-shadow: inset 0 0 20px rgba(255,255,255,0.02);">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 1.2rem; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 0.8rem;">
-                                <span style="color: #b0a4d4; font-weight: 500;">Consultation Plan:</span>
-                                <span id="pay-service-name" style="font-weight:700; color:var(--text-primary); text-align: right;"></span>
-                            </div>
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span style="color: #b0a4d4; font-weight: 500;">Service Fee:</span>
-                                <strong style="color: var(--accent-gold); font-size: 2rem; text-shadow: 0 0 15px rgba(212,175,55,0.4);">
-                                    ₹<span id="pay-amount"></span>
-                                </strong>
-                            </div>
-                        </div>
-
-                        <div style="display: flex; flex-direction: column; align-items: center; gap: 1.5rem;">
-                            <button type="button" class="btn btn-primary" id="razorpay-pay-btn" style="width: 100%; max-width: 380px; height: 64px; font-size: 1.4rem; border-radius: 32px; background: linear-gradient(135deg, #FFD54F, #C9A84C); color: #0d0d2b; font-weight: 900; box-shadow: 0 10px 25px rgba(212,175,55,0.3); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: transform 0.2s ease;" onclick="proceedToRazorpay()">
-                                <i class="fas fa-credit-card"></i> Pay via Razorpay
-                            </button>
-                            
-                            <div style="display: flex; align-items: center; gap: 1.5rem; filter: grayscale(1) opacity(0.6); margin-top: 0.5rem;">
-                                <i class="fab fa-cc-visa fa-2x"></i>
-                                <i class="fab fa-cc-mastercard fa-2x"></i>
-                                <i class="fab fa-google-pay fa-2x"></i>
-                                <i class="fas fa-mobile-alt fa-2x"></i>
-                            </div>
-
-                            <p style="font-size: 0.85rem; color: var(--text-secondary); max-width: 450px; line-height: 1.5;">
-                                <i class="fas fa-lock" style="color: #4CAF50;"></i> Encrypted & Secure. Your transaction is processed by **Razorpay Software Private Limited**.
-                            </p>
-                        </div>
                     </div>
-">
-                            <button id="verify-payment-btn" class="btn btn-primary btn-block">Verify & Book Consultation</button>
-                        </div>
+                    <div class="form-group" style="grid-column: 1 / -1; position: relative;">
+                        <label>Place of Birth</label>
+                        <input type="text" id="panchang-pob" placeholder="Search City..." class="panchang-input" required>
+                        <div id="panchang-pob-dropdown" style="display:none; position:absolute; width:100%; max-height: 200px; overflow-y: auto; background: var(--bg-dark); border: 1px solid var(--border-light); z-index: 1000;"></div>
+                        <input type="hidden" id="panchang-lat">
+                        <input type="hidden" id="panchang-lon">
                     </div>
-
-                    <div id="form-message" style="display:none; margin-top:20px; padding:15px; background:rgba(201,168,76,0.1); border-left:4px solid var(--accent-gold);">
-                        Payment Verified! You've been redirected to WhatsApp to complete your booking. Your Google Meet link is: <a href="https://meet.google.com/gbg-tsbj-aut" target="_blank" style="color:var(--text-primary); text-decoration:underline;">meet.google.com/gbg-tsbj-aut</a>
+                    <div style="grid-column: 1 / -1;">
+                        <button type="submit" class="btn btn-primary" style="width: 100%; border-radius: 8px;">KNOW YOUR PAÑCĀṄGA</button>
+                    </div>
+                </form>
+                
+                <div id="panchang-results" style="display:none; margin-top: 2.5rem; padding-top: 2.5rem; border-top: 1px dashed rgba(201, 168, 76, 0.4);">
+                    <div class="panchang-data-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem; text-align: center;">
+                        <div class="result-item">
+                            <span style="display: block; font-size: 0.8rem; text-transform: uppercase; color: var(--accent-gold);">Vāra (Day)</span>
+                            <strong id="result-vara" style="font-size: 1.2rem; color: #fff;"></strong>
+                        </div>
+                        <div class="result-item">
+                            <span style="display: block; font-size: 0.8rem; text-transform: uppercase; color: var(--accent-gold);">Tithi</span>
+                            <strong id="result-tithi" style="font-size: 1.2rem; color: #fff;"></strong>
+                        </div>
+                        <div class="result-item">
+                            <span style="display: block; font-size: 0.8rem; text-transform: uppercase; color: var(--accent-gold);">Nakṣatra</span>
+                            <strong id="result-nakshatra" style="font-size: 1.2rem; color: #fff;"></strong>
+                        </div>
+                        <div class="result-item">
+                            <span style="display: block; font-size: 0.8rem; text-transform: uppercase; color: var(--accent-gold);">Yoga</span>
+                            <strong id="result-yoga" style="font-size: 1.2rem; color: #fff;"></strong>
+                        </div>
+                        <div class="result-item">
+                            <span style="display: block; font-size: 0.8rem; text-transform: uppercase; color: var(--accent-gold);">Karaṇa</span>
+                            <strong id="result-karana" style="font-size: 1.2rem; color: #fff;"></strong>
+                        </div>
+                        <div class="result-item">
+                            <span style="display: block; font-size: 0.8rem; text-transform: uppercase; color: var(--accent-gold);">Rāśi</span>
+                            <strong id="result-rashi" style="font-size: 1.2rem; color: #fff;"></strong>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+
+
 
     <!-- FAQ Section -->
     <section class="faq section-padding" id="faq">
@@ -579,16 +625,21 @@
                     </div>
                 </div>
                 <div class="faq-item" data-aos="fade-up" data-aos-delay="200">
-                    <button class="faq-question">How accurate does my birth time need to be?</button>
+                    <button class="faq-question">What is the difference between Vedic and Western astrology?</button>
                     <div class="faq-answer">
-                        <p>Accuracy is crucial. Even a 5-minute difference can change critical divisional charts (like Navāṁśa), which alters the entire predictive landscape.</p>
+                        <p>Vedic Astrology uses the Sidereal zodiac (aligned with fixed star positions), while Western uses the Tropical zodiac. Vedic astrology is deeply predictive and offers practical remedies (Mantras/Gemstones).</p>
                     </div>
                 </div>
-                <!-- ... other FAQs ... -->
                 <div class="faq-item" data-aos="fade-up" data-aos-delay="300">
-                    <button class="faq-question">How will the consultation happen?</button>
+                    <button class="faq-question">Do I need an exact birth time?</button>
                     <div class="faq-answer">
-                        <p>All consultations are conducted online via Google Meet. The fixed joining link is <a href="https://meet.google.com/gbg-tsbj-aut" target="_blank" style="color:var(--accent-gold);">meet.google.com/gbg-tsbj-aut</a>. Please join at your scheduled time.</p>
+                        <p>Yes, accuracy is critical in Vedic Astrology. Even a few minutes' difference can change the divisional charts and predictive timing. If you are unsure, provide your best estimate.</p>
+                    </div>
+                </div>
+                <div class="faq-item" data-aos="fade-up" data-aos-delay="400">
+                    <button class="faq-question">Are consultations confidential?</button>
+                    <div class="faq-answer">
+                        <p>Absolutely. Your privacy is paramount. Charts and session discussions are never shared with third parties.</p>
                     </div>
                 </div>
             </div>
@@ -602,12 +653,16 @@
 
     <!-- Footer -->
     <footer style="padding: 2rem; text-align: center; border-top: 1px solid var(--border-light); margin-top: 5rem;">
-        <div style="margin-bottom: 1.5rem; font-size: 1.5rem; color: var(--accent-gold); display: flex; justify-content: center; gap: 1.5rem;">
-            <a href="https://www.instagram.com/alpacinoismydaddy?igsh=cnh3cW4weGU3Nml1" target="_blank"><i class="fab fa-instagram"></i></a>
-            <a href="https://wa.me/919630958614" target="_blank"><i class="fab fa-whatsapp"></i></a>
-            <a href="https://www.linkedin.com/in/sarthak-bhattacharyya-735489399/" target="_blank"><i class="fab fa-linkedin"></i></a>
+        <div style="margin-bottom: 1.5rem; font-size: 1.5rem; color: var(--accent-gold); display: flex; justify-content: center; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
+            <a href="https://discordapp.com/users/sarthakbhattacharyyya" target="_blank"><i class="fa-brands fa-discord"></i></a>
+            <a href="https://github.com/Bratcharyya" target="_blank"><i class="fa-brands fa-github"></i></a>
+            <a href="https://x.com/bratacharyya" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>
+            <a href="https://www.instagram.com/alpacinoismydaddy?igsh=cnh3cW4weGU3Nml1" target="_blank"><i class="fa-brands fa-instagram"></i></a>
+            <a href="https://www.snapchat.com/add/bratcharyya" target="_blank"><i class="fa-brands fa-snapchat"></i></a>
+            <a href="https://wa.me/919630958614" target="_blank"><i class="fa-brands fa-whatsapp"></i></a>
+            <a href="https://www.linkedin.com/in/sarthak-bhattacharyya-735489399/" target="_blank"><i class="fa-brands fa-linkedin"></i></a>
         </div>
-        <p>© 2025 GenZ Jyotiṣa | <strong><em>Sarthak Bhattacharyya</em></strong>. All Rights Reserved.</p>
+        <p>© 2026 GenZ Jyotiṣa | <strong><em>Sarthak Bhattacharyya</em></strong>. All Rights Reserved.</p>
         <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem; max-width: 600px; margin-left: auto; margin-right: auto;">
             Disclaimer: Astrology is for guidance purposes only. Consultations are not a substitute for professional medical, legal, or financial advice.
         </p>

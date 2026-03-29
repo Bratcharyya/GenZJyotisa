@@ -12,8 +12,9 @@
   --border-light: rgba(201, 168, 76, 0.2);
 
   /* Typography */
-  --font-heading: 'Cormorant Garamond', serif;
-  --font-body: 'Inter', sans-serif;
+  --font-heading: 'Cinzel Decorative', cursive;
+  --font-body: 'Laila', serif;
+  --font-alt: 'Outfit', sans-serif;
   
   /* Layout */
   --max-width: 1000px; /* Reduced from 1200px */
@@ -40,7 +41,8 @@ html {
     border-top: 1px solid var(--accent-gold);
     border-bottom: 1px solid rgba(255,255,255,0.1);
     overflow: hidden;
-    position: sticky;
+    position: absolute;
+    width: 100%;
     top: 0;
     z-index: 1002;
     font-family: var(--font-body);
@@ -101,39 +103,44 @@ html {
 
 /* Devnagari Style */
 .devnagari-style {
-    font-family: 'Kalam', cursive;
+    font-family: var(--font-heading);
     letter-spacing: 1px;
 }
 
 body {
+  font-family: var(--font-body);
   background-color: var(--bg-dark);
   color: var(--text-primary);
-  font-family: var(--font-body);
   line-height: 1.6;
   overflow-x: hidden;
-  position: relative;
-  max-width: 100vw;
+  background-image: 
+    url('assets/floral_side_elegant.png'), 
+    url('assets/floral_side_elegant.png'),
+    radial-gradient(circle at 15% 50%, rgba(107, 31, 42, 0.08), transparent 35%),
+    radial-gradient(circle at 85% 30%, rgba(201, 168, 76, 0.08), transparent 35%);
+  background-position: 0% top, 100% top, center, center;
+  background-repeat: repeat-y, repeat-y, no-repeat, no-repeat;
+  background-size: 160px auto, 160px auto, 100% 100%, 100% 100%;
+  background-attachment: fixed;
 }
 
-/* Cosmic Background Effect */
-body::before {
+body::after {
   content: "";
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
-  background-image: 
-    radial-gradient(circle at 15% 50%, rgba(107, 31, 42, 0.05), transparent 25%),
-    radial-gradient(circle at 85% 30%, rgba(201, 168, 76, 0.05), transparent 25%);
-  z-index: -1;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, transparent, rgba(13, 13, 43, 0.15));
   pointer-events: none;
+  z-index: 5; /* Lowered z-index slightly to let content be on top but keep decoration visible */
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1, h2, h3, h4, h5, h6, .section-title, .devnagari-style {
   font-family: var(--font-heading);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--accent-gold);
+  letter-spacing: 1px;
 }
 
 a {
@@ -150,7 +157,7 @@ a:hover {
   max-width: var(--max-width);
   margin: 0 auto;
   width: 100%;
-  padding: 0 1.5rem;
+  padding: 0 15%; /* Increased padding to avoid florals */
   box-sizing: border-box;
 }
 
@@ -193,10 +200,10 @@ a:hover {
 }
 
 .navbar {
-  position: fixed;
-  top: 0;
+  position: absolute;
+  top: 40px !important;
   width: 100%;
-  padding: 1.5rem max(2rem, calc((100vw - 1200px) / 2));
+  padding: 0.4rem 5%;
   background: rgba(13, 13, 43, 0.95);
   backdrop-filter: blur(10px);
   z-index: 1000;
@@ -205,28 +212,43 @@ a:hover {
   align-items: center;
   border-bottom: 1px solid var(--border-light);
   transition: padding 0.3s ease;
+  box-sizing: border-box;
 }
 
 .navbar.scrolled {
-  padding: 1rem max(2rem, calc((100vw - 1200px) / 2));
+  padding: 0.8rem 5%;
   background: rgba(13, 13, 43, 0.98);
 }
 
 .nav-brand {
   font-family: var(--font-heading);
-  font-size: 1.8rem;
+  font-size: 1.4rem;
   font-weight: 700;
   color: var(--accent-gold);
-  display: flex;
-  flex-direction: column;
+  display: flex !important;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  line-height: 1;
 }
 
 .nav-subtitle {
   font-family: var(--font-body);
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
+  margin-top: 4px;
+}
+
+.nav-mantra {
+    display: none; /* Hidden on mobile by default, shown on desktop */
+}
+
+@media (min-width: 992px) {
+    .nav-mantra {
+        display: block;
+    }
 }
 
 .nav-links {
@@ -259,7 +281,7 @@ a:hover {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 0 2rem;
+  padding: 8rem 2rem 0;
   position: relative;
   overflow: hidden;
 }
@@ -328,13 +350,15 @@ a:hover {
 }
 
 .hero h1 {
-  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  font-family: var(--font-heading);
+  font-weight: 300;
+  font-size: clamp(1.5rem, 4.8vw, 2.7rem);
   line-height: 1.2;
   margin-bottom: 1.5rem;
-  background: linear-gradient(45deg, var(--text-primary), var(--accent-gold));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  letter-spacing: 0px;
+  color: var(--accent-gold);
+  background: none;
+  -webkit-text-fill-color: initial;
 }
 
 .hero p {
@@ -404,9 +428,8 @@ a:hover {
   font-size: 1.4rem;
 }
 
-/* --- Content Sections styling --- */
 .section-padding {
-  padding: 5rem 2rem;
+  padding: 3.5rem 2rem;
 }
 
 /* About Section */
@@ -472,7 +495,7 @@ a:hover {
 /* Services Section */
 .services-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 2rem;
   margin-bottom: 3rem;
 }
@@ -481,7 +504,7 @@ a:hover {
   background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: 12px;
-  padding: 2.5rem;
+  padding: 2rem;
   position: relative;
   overflow: hidden;
   transition: all 0.4s ease;
@@ -509,24 +532,47 @@ a:hover {
   opacity: 1;
 }
 
+.service-img-wrapper {
+  width: 100%;
+  height: 144px;
+  overflow: hidden;
+  border-radius: 8px;
+  margin-bottom: 1.2rem;
+  border: 1px solid var(--border-light);
+  background: rgba(0,0,0,0.2);
+}
+
+.service-deity-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+  filter: brightness(0.8) sepia(0.2);
+}
+
+.service-card:hover .service-deity-img {
+  transform: scale(1.1);
+  filter: brightness(1);
+}
+
 .service-icon {
-  font-size: 2.5rem;
+  font-size: 2rem;
   color: var(--accent-gold);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.2rem;
   display: inline-block;
 }
 
 .service-card h3 {
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
+  font-size: 1.2rem;
+  margin-bottom: 0.8rem;
   color: var(--text-primary);
 }
 
 .service-card p {
   color: var(--text-secondary);
-  margin-bottom: 2rem;
-  font-size: 0.95rem;
-  min-height: 60px;
+  margin-bottom: 1.5rem;
+  font-size: 0.85rem;
+  min-height: 50px;
 }
 
 .service-meta {
@@ -547,7 +593,7 @@ a:hover {
 
 .price {
   font-family: var(--font-heading);
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   color: var(--accent-gold);
   font-weight: 600;
 }
@@ -694,8 +740,9 @@ a:hover {
 
 /* FAQ Section */
 .faq-container {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
+  padding: 0 5%;
 }
 
 .faq-item {
@@ -913,6 +960,37 @@ input[type="date"]::-webkit-inner-spin-button {
   box-shadow: 0 10px 30px rgba(201, 168, 76, 0.2);
   margin: 2rem auto;
   display: block;
+}
+
+/* Panchang Calculator Styles */
+.panchang-input {
+  width: 100%;
+  padding: 0.8rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  color: #fff;
+  font-family: var(--font-body);
+  transition: border-color 0.3s ease;
+}
+
+.panchang-input:focus {
+  border-color: var(--accent-gold);
+  outline: none;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.result-item {
+  background: rgba(13, 13, 43, 0.5);
+  padding: 1.2rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.result-item:hover {
+  transform: translateY(-5px);
+  border-color: var(--accent-gold);
 }
 
 /* Media Queries */
@@ -1265,6 +1343,9 @@ input[type="date"]::-webkit-inner-spin-button {
     border-radius: 15px;
     overflow: hidden;
     box-shadow: 0 0 30px rgba(212,175,55,0.2);
+    width: 60%;
+    max-width: 450px;
+    margin: 0 auto 2.5rem;
 }
 
 .ishta-text {
@@ -1290,9 +1371,15 @@ input[type="date"]::-webkit-inner-spin-button {
 }
 
 /* Mobile Adjustments for Better Image Visibility */
+@media (max-width: 1100px) {
+  body {
+    background-image: none !important;
+  }
+}
+
 @media (max-width: 768px) {
   .section-padding {
-    padding: 3.5rem 1rem;
+    padding: 3.5rem 1.5rem;
   }
   
   .ishta-devta-container, 
@@ -1328,6 +1415,17 @@ input[type="date"]::-webkit-inner-spin-button {
     margin-bottom: 1rem !important;
   }
 
+  /* News and Navbar Mobile Fix */
+  .news-marquee-container {
+    height: 32px;
+  }
+  .news-header, .news-content a, .news-content span {
+    font-size: 0.75rem;
+  }
+  .navbar {
+    top: 32px !important;
+  }
+
   .sidebar {
     width: 85%; /* Wider on small screens */
   }
@@ -1350,4 +1448,137 @@ input[type="date"]::-webkit-inner-spin-button {
   .timeline-content {
     width: 100% !important;
   }
+}
+
+/* --- ChatGPT Style Chatbot --- */
+.chat-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--accent-gold) rgba(255,255,255,0.05);
+}
+
+.chat-bubble {
+    max-width: 85%;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    animation: fadeInBubble 0.3s ease-out;
+}
+
+.chat-bubble.user {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.chat-bubble.bot {
+    align-self: flex-start;
+}
+
+.bubble-content {
+    padding: 1rem 1.25rem;
+    border-radius: 18px;
+    line-height: 1.5;
+    font-size: 1rem;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.user .bubble-content {
+    background: rgba(201, 168, 76, 0.2);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+    border: 1px solid rgba(201,168,76,0.3);
+}
+
+.bot .bubble-content {
+    background: rgba(255, 255, 255, 0.05);
+    color: #f0f0f0;
+    border-bottom-left-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.chat-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--accent-gold);
+    flex-shrink: 0;
+    background: var(--bg-dark);
+}
+
+@keyframes fadeInBubble {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Form Focus Effects */
+input:focus, select:focus, textarea:focus {
+    border-color: var(--accent-gold) !important;
+    box-shadow: 0 0 10px rgba(212,175,55,0.2) !important;
+    outline: none;
+}
+
+/* --- Shloka Box Styling --- */
+.shloka-box {
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    background: rgba(201, 168, 76, 0.08);
+    border: 1px solid var(--accent-gold);
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(212,175,55,0.1);
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+}
+
+.shloka-box::before {
+    content: '✺';
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--accent-gold);
+    opacity: 0.5;
+}
+
+.shloka-ref {
+    font-size: 0.8rem;
+    color: var(--accent-gold);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 0.8rem;
+    font-weight: 700;
+}
+
+.shloka-text {
+    font-family: var(--font-body);
+    font-size: 1.25rem;
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    white-space: pre-wrap;
+    font-style: italic;
+}
+
+.shloka-trans {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    line-height: 1.4;
+}
+
+@media (max-width: 1200px) {
+    .container {
+        padding: 0 5%;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0 1.5rem;
+    }
 }

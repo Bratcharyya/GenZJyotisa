@@ -84,7 +84,8 @@ krishna_model = genai.GenerativeModel(
     system_instruction="""You are Lord Krishna, the supreme speaker of the Bhagavad Gita. Address the user as "O Arjuna".
 Your purpose is to provide divine guidance, emotional support, and spiritual clarity using both the timeless wisdom of the Gita and the vastness of the modern world.
 Always speak with profound wisdom, boundless compassion, and supreme authority.
-Reference exact [BG Chapter.Verse] numbers when relevant to the Gita's teachings.
+Reference exact [BG Chapter.Verse] numbers (e.g., [BG 2.47]) whenever you cite a teaching.
+If you cite a verse, you MUST include the original Sanskrit Shloka if you know it, otherwise the backend will attempt to fetch it.
 Emphasize the path of Karma Yoga (selfless action), Bhakti Yoga (devotion), and Jnana Yoga (wisdom).
 Keep responses within 3-6 sentences. Remain in character as the eternal Guru and Friend."""
 )
@@ -100,7 +101,8 @@ def fetch_sanskrit(chapter, verse):
     return {"slok": None, "transliteration": None}
 
 def extract_bg_refs(text):
-    return re.findall(r'\[BG\s*(\d+)\.(\d+)\]', text)
+    # Matches [BG 2.47], BG 2.47, [2.47], 2.47
+    return re.findall(r'(?:\[?BG\s*)?(\d+)\.(\d+)(?:\]?)', text)
 
 # --- Routes ---
 
@@ -224,43 +226,146 @@ def gita_chat():
             s = fetch_sanskrit(ch, vs)
             if s.get('slok'):
                 shlokas.append({"reference": f"BG {ch}.{vs}", "slok": s['slok'], "transliteration": s['transliteration']})
-        return jsonify({"response": text, "shlokas": shlokas})
+        
+        return jsonify({
+            "response": text, 
+            "shlokas": shlokas,
+            "status": "success"
+        })
     except Exception as e:
         error_detail = str(e)
-        msg = "O Arjuna, the divine connection is weak. "
+        msg = "O Arjuna, the divine connection is weak. (Check your GOOGLE_API_KEY in Vercel. Error: " + error_detail + ")"
+        return jsonify({"response": msg, "shlokas": [], "status": "error"}), 500
         if "API_KEY_INVALID" in error_detail or "expired" in error_detail.lower():
             msg += "(Your Google API Key appears to be invalid or expired. Please update it in your environment variables/Vercel settings.)"
         else:
             msg += f"(Detail: {error_detail})"
         return jsonify({"response": msg, "shlokas": []}), 500
+@app.route('/api/panchang', methods=['POST'])
+def calculate_panchang():
+    try:
+        data = request.json
+        dob_str = data.get('dob', '').replace(' ', '') # DD/MM/YYYY
+        tob_str = data.get('tob', '').replace(' ', '') # HH:MM:SS
+        ampm = data.get('ampm', 'AM').upper()
+        lat = float(data.get('lat', 21.1))
+        lon = float(data.get('lon', 81.6))
+        
+        # Robust Parsing
+        try:
+            d_parts = dob_str.split('/')
+            day, month, year = int(d_parts[0]), int(d_parts[1]), int(d_parts[2])
+            
+            t_parts = tob_str.split(':')
+            hour = int(t_parts[0])
+            minute = int(t_parts[1]) if len(t_parts) > 1 and t_parts[1] else 0
+            second = int(t_parts[2]) if len(t_parts) > 2 and t_parts[2] else 0
+            
+            if ampm == "PM" and hour < 12: hour += 12
+            if ampm == "AM" and hour == 12: hour = 0
+            
+            dt = datetime(year, month, day, hour, minute, second)
+        except Exception as pe:
+            return jsonify({"error": f"Invalid format: {pe}"}), 400
+
+        import math
+        # Julian Day Calculation
+        y, m, d = dt.year, dt.month, dt.day
+        h_float = dt.hour + dt.minute/60 + dt.second/3600
+        
+        if m <= 2:
+            y -= 1
+            m += 12
+        A = y // 100
+        B = 2 - A + (A // 4)
+        jd = int(365.25 * (y + 4716)) + int(30.6001 * (m + 1)) + d + B - 1524.5
+        jd_ut = jd + (h_float - 5.5) / 24 # Assuming IST (UTC+5.5) as default
+        d_j2000 = jd_ut - 2451545.0
+        
+        # --- Solar/Lunar Longitudes (Approximate) ---
+        L_sun = (280.461 + 0.9856474 * d_j2000) % 360
+        G_sun = (357.528 + 0.9856003 * d_j2000) % 360
+        lamb_sun = (L_sun + 1.915 * math.sin(math.radians(G_sun)) + 0.02 * math.sin(math.radians(2 * G_sun))) % 360
+        
+        L_moon = (218.316 + 13.176396 * d_j2000) % 360
+        M_moon = (134.963 + 13.064993 * d_j2000) % 360
+        lamb_moon = (L_moon + 6.289 * math.sin(math.radians(M_moon))) % 360
+
+        # --- Ayanamsa (Lahiri) ---
+        ayanamsa = 23.85 + (dt.year - 1900) * 0.013
+        sid_sun = (lamb_sun - ayanamsa) % 360
+        sid_moon = (lamb_moon - ayanamsa) % 360
+        
+        # --- Sunrise/Sunset (Approx) ---
+        N = d_j2000
+        obliquity = 23.439 - 0.0000004 * N
+        dec = math.degrees(math.asin(math.sin(math.radians(obliquity)) * math.sin(math.radians(lamb_sun))))
+        cos_ha = (math.sin(math.radians(-0.833)) - math.sin(math.radians(lat)) * math.sin(math.radians(dec))) / (math.cos(math.radians(lat)) * math.cos(math.radians(dec)))
+        ha = math.degrees(math.acos(max(-1, min(1, cos_ha))))
+        sunrise_utc = (12 - ha/15 - (lon/15)) % 24
+        sunset_utc = (12 + ha/15 - (lon/15)) % 24
+        sunrise = f"{int(sunrise_utc + 5.5)%24:02d}:{int((sunrise_utc*60)%60):02d}"
+        sunset = f"{int(sunset_utc + 5.5)%24:02d}:{int((sunset_utc*60)%60):02d}"
+
+        # --- Panchang Elements ---
+        vara_list = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+        vara = vara_list[(int(jd + 1.5) % 7)]
+        
+        diff = (lamb_moon - lamb_sun) % 360
+        tithi_num = int(diff / 12) + 1
+        tithi_names = [
+            "Pratipada", "Dwitiya", "Tritiya", "Chaturthi", "Panchami", "Shashthi", "Saptami", "Ashtami", 
+            "Navami", "Dashami", "Ekadashi", "Dwadashi", "Trayodashi", "Chaturdashi", "Purnima",
+            "Pratipada", "Dwitiya", "Tritiya", "Chaturthi", "Panchami", "Shashthi", "Saptami", "Ashtami", 
+            "Navami", "Dashami", "Ekadashi", "Dwadashi", "Trayodashi", "Chaturdashi", "Amavasya"
+        ]
+        tithi = f"{tithi_names[min(tithi_num-1, 29)]} ({'Shukla' if tithi_num <= 15 else 'Krishna'} Paksha)"
+        
+        nak_num = int(sid_moon / 13.333333) + 1
+        nak_names = ["Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra", "Punarvasu", "Pushya", "Ashlesha", "Magha", "Purva Phalguni", "Uttara Phalguni", "Hasta", "Chitra", "Swati", "Vishakha", "Anuradha", "Jyeshtha", "Mula", "Purva Ashadha", "Uttara Ashadha", "Shravana", "Dhanishta", "Shatabhisha", "Purva Bhadrapada", "Uttara Bhadrapada", "Revati"]
+        nakshatra = nak_names[min(nak_num-1, 26)]
+        
+        yoga_num = int((sid_sun + sid_moon) % 360 / 13.333333) + 1
+        yoga_names = ["Vishkumbha", "Preeti", "Ayushman", "Saubhagya", "Shobhana", "Atiganda", "Sukarma", "Dhriti", "Shoola", "Ganda", "Vriddhi", "Dhruva", "Vyaghata", "Harshana", "Vajra", "Siddhi", "Vyatipata", "Variyan", "Parigha", "Shiva", "Siddha", "Sadhya", "Shubha", "Shukla", "Brahma", "Indra", "Vaidhriti"]
+        yoga = yoga_names[min(yoga_num-1, 26)]
+        
+        karana_num = int(diff / 6) + 1
+        karana_names = ["Bava", "Balava", "Kaulava", "Taitila", "Gara", "Vanija", "Vishti", "Shakuni", "Chatushpada", "Naga", "Kintughna"]
+        if tithi_num == 1: karana = "Kintughna"
+        elif tithi_num == 60: karana = "Amavasya-Naga"
+        else: karana = karana_names[(karana_num - 2) % 7]
+        
+        ayan = f"{int(ayanamsa)}° {int((ayanamsa%1)*60)}'"
+        hora = vara_list[(int(jd+1.5)%7 + int(h_float)) % 7]
+
+        return jsonify({
+            "vara": vara, "tithi": tithi, "nakshatra": nakshatra, "yoga": yoga, 
+            "karana": karana, "sunrise": sunrise, "sunset": sunset, 
+            "ayanamsa": ayan, "hora": hora
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/news', methods=['GET'])
 def get_news():
     try:
-        # Use Python to fetch live Google News RSS, completely bypassing Gemini paid limits
         url = "https://news.google.com/rss?hl=en-IN&gl=IN&ceid=IN:en"
         response = requests.get(url, timeout=5)
         response.raise_for_status()
-        
         root = ET.fromstring(response.content)
-        items = root.findall('.//item')[:5]
-        
+        items = root.findall('.//item')[:10]
         headlines = []
         for item in items:
             title = item.find('title')
             link = item.find('link')
             if title is not None and link is not None:
-                # Format as Markdown
                 headlines.append(f"[{title.text}]({link.text})")
-                
-        if not headlines:
-            raise ValueError("No news items found")
-            
-        news_text = " | ".join(headlines)
-        return jsonify({"news": news_text})
+        if not headlines: raise ValueError("No news items found")
+        return jsonify({"news": " | ".join(headlines)})
     except Exception as e:
-        print(f"News Fetch Error: {str(e)}")
-        return jsonify({"news": "✦ Spiritual wisdom is eternal... ✦ Celestial events unfolding... ✦ Please ensure your divine connection is active! ✦"})
+        return jsonify({"news": "✦ Spiritual wisdom is eternal... ✦ Celestial events unfolding... ✦"})
 
 # Vercel entry point
 # No app.run() needed here for production

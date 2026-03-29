@@ -5,17 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- PWA / Mobile App Meta Tags -->
     <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="assets/rahu_icon.png">
+    <link rel="apple-touch-icon" href="assets/rahu_icon.png">
     <meta name="theme-color" content="#0D0D2B">
-    <link rel="apple-touch-icon" href="assets/zodiac.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="GenZ Jyotiṣa">
     <title>The Tradition - GenZ Jyotiṣa</title>
     <meta name="description" content="Learn about Vedic Astrology and the classical Pārāśarī tradition.">
     <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- AOS for Animations -->
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Laila:wght@300;400;500;600;700&family=Kalam:wght@400;700&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <style>
         .hero { height: 60vh; }
@@ -99,23 +102,52 @@
 </head>
 <body>
 
+    <!-- Sidebar Navigation Drawer -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3 class="devnagari-style">GenZ Jyotiṣa</h3>
+            <button id="sidebar-close" aria-label="Close menu">&times;</button>
+        </div>
+        <div class="sidebar-links">
+            <a href="index.html#home" class="sidebar-link-item"><i class="fas fa-home"></i> Home</a>
+            <a href="index.html#about" class="sidebar-link-item"><i class="fas fa-user-astrologer"></i> About Sarthak</a>
+            <a href="index.html#services" class="sidebar-link-item"><i class="fas fa-scroll"></i> Consultations</a>
+            <a href="index.html#insights" class="sidebar-link-item"><i class="fas fa-newspaper"></i> Latest Articles</a>
+            <a href="index.html#panchang" class="sidebar-anchor"><i class="fas fa-om"></i> Calculate Your Own Pañcāṅga</a>
+            <a href="index.html#gita-guidance" class="sidebar-link-item"><i class="fas fa-comment-dots"></i> Lord Krishna AI</a>
+            <a href="tradition.html" class="sidebar-link-item"><i class="fas fa-book-open"></i> The Tradition</a>
+            <a href="index.html#booking" class="sidebar-link-item btn btn-primary"><i class="fas fa-calendar-check"></i> Book Now</a>
+        </div>
+    </div>
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
     <!-- Navigation -->
     <nav class="navbar" id="navbar">
         <a href="index.html" class="nav-brand">
             GenZ Jyotiṣa
             <span class="nav-subtitle">Ancient Stars, Modern Souls</span>
         </a>
+
+        <div class="nav-mantra" style="color: var(--accent-gold); font-family: 'Kalam', cursive; font-size: 0.9rem; text-align: center; flex: 1; padding: 0 1rem; letter-spacing: 1px;">
+            ॐ नमो भगवते वाসুদেवाय।<br>
+            <span style="font-size: 0.75rem; opacity: 0.8; font-family: var(--font-body);">om namo bhagavate vāsudevāya</span>
+        </div>
         
-        <div class="hamburger" id="hamburger">
-            <i class="fas fa-bars"></i>
+        <div class="nav-extra">
+            <button class="sidebar-toggle" id="sidebar-toggle-btn" aria-label="Menu">
+                <i class="fas fa-th-large"></i>
+            </button>
+            <div class="hamburger" id="hamburger">
+                <i class="fas fa-bars"></i>
+            </div>
         </div>
 
         <div class="nav-links" id="nav-links">
             <a href="index.html">Home</a>
             <a href="index.html#about">About</a>
             <a href="index.html#services">Services</a>
+            <a href="index.html#insights">Articles</a>
             <a href="tradition.html" style="color:var(--accent-gold)">The Tradition</a>
-            <a href="index.html#booking" class="btn btn-primary">Book Now</a>
         </div>
     </nav>
 
@@ -231,11 +263,16 @@
 
     <!-- Footer -->
     <footer style="padding: 2rem; text-align: center; border-top: 1px solid var(--border-light); margin-top: 2rem;">
-        <div style="margin-bottom: 1.5rem; font-size: 1.5rem; color: var(--accent-gold); display: flex; justify-content: center; gap: 1.5rem;">
-            <a href="https://www.instagram.com/alpacinoismydaddy?igsh=cnh3cW4weGU3Nml1" target="_blank"><i class="fab fa-instagram"></i></a>
-            <a href="https://wa.me/919630958614" target="_blank"><i class="fab fa-whatsapp"></i></a>
+        <div style="margin-bottom: 1.5rem; font-size: 1.5rem; color: var(--accent-gold); display: flex; justify-content: center; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
+            <a href="https://discordapp.com/users/sarthakbhattacharyyya" target="_blank"><i class="fa-brands fa-discord"></i></a>
+            <a href="https://github.com/Bratcharyya" target="_blank"><i class="fa-brands fa-github"></i></a>
+            <a href="https://x.com/bratacharyya" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>
+            <a href="https://www.instagram.com/alpacinoismydaddy?igsh=cnh3cW4weGU3Nml1" target="_blank"><i class="fa-brands fa-instagram"></i></a>
+            <a href="https://www.snapchat.com/add/bratcharyya" target="_blank"><i class="fa-brands fa-snapchat"></i></a>
+            <a href="https://wa.me/919630958614" target="_blank"><i class="fa-brands fa-whatsapp"></i></a>
+            <a href="https://www.linkedin.com/in/sarthak-bhattacharyya-735489399/" target="_blank"><i class="fa-brands fa-linkedin"></i></a>
         </div>
-        <p>© 2025 GenZ Jyotiṣa | <strong><em>Sarthak Bhattacharyya</em></strong>. All Rights Reserved.</p>
+        <p>© 2026 GenZ Jyotiṣa | <strong><em>Sarthak Bhattacharyya</em></strong>. All Rights Reserved.</p>
     </footer>
 
     <!-- Scripts -->
