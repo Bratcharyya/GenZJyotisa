@@ -1373,7 +1373,13 @@ input[type="date"]::-webkit-inner-spin-button {
 /* Mobile Adjustments for Better Image Visibility */
 @media (max-width: 1100px) {
   body {
-    background-image: none !important;
+    background-size: 110px auto, 110px auto, 100% 100%, 100% 100% !important;
+  }
+}
+
+@media (max-width: 600px) {
+  body {
+    background-size: 80px auto, 80px auto, 100% 100%, 100% 100% !important;
   }
 }
 
