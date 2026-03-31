@@ -63,6 +63,7 @@ html {
     position: relative;
     z-index: 2;
     text-transform: uppercase;
+    flex-shrink: 0;
 }
 
 .news-track {
@@ -70,25 +71,62 @@ html {
     overflow: hidden;
     display: flex;
     align-items: center;
+    position: relative;
 }
 
 .news-content {
-    display: inline-block;
+    display: inline-flex;
     white-space: nowrap;
     animation: marquee-scroll 60s linear infinite;
+    will-change: transform;
+    align-items: center;
+    height: 100%;
 }
 
-.news-content span, .news-content a {
-    font-size: 0.95rem;
+/* Pause animation on hover/touch so links are tappable on iOS/Android */
+.news-content:hover,
+.news-content:active,
+.news-track:hover .news-content,
+.news-track:active .news-content {
+    animation-play-state: paused;
+}
+
+.news-content .news-inner {
+    display: inline-flex;
+    align-items: center;
+    height: 100%;
+    white-space: nowrap;
+}
+
+.news-content .news-separator {
+    font-size: 0.85rem;
+    color: #999;
+    padding: 0 4px;
+    display: inline-block;
+    pointer-events: none;
+}
+
+.news-content .news-link {
+    font-size: 0.9rem;
     color: #e0e0e0;
     font-weight: 500;
-    padding-right: 60px;
     text-decoration: none;
-    transition: color 0.3s ease;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 12px;
+    height: 40px;
+    line-height: 40px;
+    pointer-events: auto !important;
+    -webkit-tap-highlight-color: rgba(201,168,76,0.3);
+    touch-action: manipulation;
+    cursor: pointer;
+    position: relative;
+    z-index: 10;
+    transition: color 0.3s ease, text-shadow 0.3s ease;
 }
 
-.news-content a:hover {
+.news-content .news-link:hover,
+.news-content .news-link:active {
     color: var(--accent-gold);
     text-shadow: 0 0 8px rgba(201,168,76,0.5);
 }
@@ -916,6 +954,301 @@ input[type="date"]::-webkit-inner-spin-button {
   margin-top: 1rem;
 }
 
+/* ===== REFINED PAYMENT GATEWAY ===== */
+.payment-gateway {
+  display: none;
+  text-align: center;
+  padding: 2.5rem 1.8rem;
+  background: rgba(13, 13, 43, 0.85);
+  border: 2px solid transparent;
+  border-radius: 20px;
+  margin-top: 2rem;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  position: relative;
+  overflow: hidden;
+  animation: payGatewayIn 0.5s ease-out;
+  background-image: linear-gradient(rgba(13,13,43,0.85), rgba(13,13,43,0.85)),
+                    linear-gradient(135deg, var(--accent-gold), rgba(201,168,76,0.3), var(--accent-gold));
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  box-shadow: 0 0 40px rgba(201,168,76,0.1), 0 20px 60px rgba(0,0,0,0.4);
+}
+
+@keyframes payGatewayIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.pay-header {
+  margin-bottom: 2rem;
+}
+
+.pay-shield-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 1rem;
+  background: linear-gradient(135deg, rgba(201,168,76,0.2), rgba(201,168,76,0.05));
+  border: 1px solid rgba(201,168,76,0.3);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: var(--accent-gold);
+  animation: shieldPulse 2s ease-in-out infinite;
+}
+
+@keyframes shieldPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0.2); }
+  50% { box-shadow: 0 0 0 12px rgba(201,168,76,0); }
+}
+
+.pay-header h3 {
+  color: var(--accent-gold);
+  font-family: var(--font-body);
+  font-weight: 800;
+  font-size: 1.8rem;
+  letter-spacing: -0.5px;
+  margin-bottom: 0.4rem;
+}
+
+.pay-header p {
+  color: #b0a4d4;
+  font-size: 0.95rem;
+  max-width: 400px;
+  margin: 0 auto;
+  line-height: 1.4;
+}
+
+/* Order Summary */
+.pay-summary-card {
+  max-width: 420px;
+  margin: 0 auto 2rem;
+  background: rgba(255,255,255,0.025);
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.08);
+  overflow: hidden;
+}
+
+.pay-summary-title {
+  padding: 0.8rem 1.2rem;
+  background: rgba(201,168,76,0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--accent-gold);
+  text-align: left;
+}
+
+.pay-summary-title i {
+  margin-right: 0.5rem;
+}
+
+.pay-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 1.2rem;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.pay-row:last-child {
+  border-bottom: none;
+}
+
+.pay-row span {
+  color: #9e95b7;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pay-row span i {
+  color: rgba(201,168,76,0.5);
+  font-size: 0.75rem;
+  width: 16px;
+  text-align: center;
+}
+
+.pay-row strong {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: right;
+  max-width: 55%;
+  word-break: break-word;
+}
+
+.pay-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201,168,76,0.3), transparent);
+  margin: 0 1.2rem;
+}
+
+.pay-total-row {
+  background: rgba(201,168,76,0.04);
+  padding: 1rem 1.2rem !important;
+}
+
+.pay-total-row span {
+  color: var(--text-primary) !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+}
+
+.pay-price {
+  color: var(--accent-gold) !important;
+  font-size: 1.6rem !important;
+  font-family: var(--font-heading);
+  text-shadow: 0 0 15px rgba(201,168,76,0.3);
+}
+
+/* Pay Button */
+.pay-btn-razorpay {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  height: 58px;
+  margin: 0 auto 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-size: 1.2rem;
+  font-weight: 900;
+  font-family: var(--font-body);
+  letter-spacing: 0.5px;
+  color: #0d0d2b;
+  background: linear-gradient(135deg, #FFD54F 0%, #C9A84C 50%, #FFD54F 100%);
+  background-size: 200% 200%;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(201,168,76,0.35), inset 0 1px 0 rgba(255,255,255,0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pay-btn-razorpay:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(201,168,76,0.45), inset 0 1px 0 rgba(255,255,255,0.3);
+}
+
+.pay-btn-razorpay:active {
+  transform: translateY(0);
+}
+
+.pay-btn-shimmer {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+  animation: btnShimmer 3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes btnShimmer {
+  0% { left: -100%; }
+  50% { left: 150%; }
+  100% { left: 150%; }
+}
+
+/* Trust Badges */
+.pay-trust-strip {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.8rem;
+  margin-bottom: 1.2rem;
+  flex-wrap: wrap;
+}
+
+.pay-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0.4rem 0.7rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: #9e95b7;
+  transition: border-color 0.3s;
+}
+
+.pay-badge i {
+  font-size: 1.1rem;
+  opacity: 0.7;
+}
+
+.pay-badge:hover {
+  border-color: rgba(201,168,76,0.3);
+}
+
+/* Security Footer */
+.pay-security-footer {
+  margin-bottom: 1.5rem;
+}
+
+.pay-security-footer p {
+  font-size: 0.78rem;
+  color: #7a7195;
+  line-height: 1.4;
+}
+
+/* Back Button */
+.pay-back-btn {
+  background: none;
+  border: none;
+  color: #9e95b7;
+  font-size: 0.85rem;
+  font-family: var(--font-body);
+  cursor: pointer;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  transition: color 0.3s, background 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pay-back-btn:hover {
+  color: var(--accent-gold);
+  background: rgba(201,168,76,0.08);
+}
+
+@media (max-width: 768px) {
+  .payment-gateway {
+    padding: 2rem 1.2rem;
+    margin-top: 1.5rem;
+    border-radius: 16px;
+  }
+
+  .pay-header h3 {
+    font-size: 1.5rem;
+  }
+
+  .pay-btn-razorpay {
+    max-width: 100%;
+    height: 54px;
+    font-size: 1.1rem;
+  }
+
+  .pay-badge {
+    padding: 0.3rem 0.5rem;
+    font-size: 0.7rem;
+  }
+}
+
+
 /* Floating WhatsApp */
 .floating-wa {
   position: fixed;
@@ -1105,6 +1438,30 @@ input[type="date"]::-webkit-inner-spin-button {
   
   .gita-tabs {
     justify-content: center;
+  }
+
+  /* Panchanga & Nakshatra result grid — smaller + centered on mobile */
+  .panchang-data-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.7rem !important;
+    max-width: 340px;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  .result-item {
+    padding: 0.8rem 0.6rem;
+    border-radius: 10px;
+  }
+
+  .result-item span {
+    font-size: 0.65rem !important;
+    letter-spacing: 0.5px;
+  }
+
+  .result-item strong {
+    font-size: 0.95rem !important;
+    word-break: break-word;
   }
 }
 

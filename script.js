@@ -435,43 +435,6 @@ function startGitaChat(query) {
     setTimeout(() => sendGitaChat(query), 300);
 }
 
-// API Key management
-function saveGeminiKey() {
-    const key = document.getElementById('gemini-key-input').value.trim();
-    if (key) {
-        localStorage.setItem('gemini_api_key', key);
-        updateKeyStatus(true);
-        document.getElementById('key-input-area').style.display = 'none';
-    }
-}
-function clearGeminiKey() {
-    localStorage.removeItem('gemini_api_key');
-    updateKeyStatus(false);
-    document.getElementById('gemini-key-input').value = '';
-}
-function toggleKeyInput() {
-    const area = document.getElementById('key-input-area');
-    area.style.display = area.style.display === 'none' ? 'flex' : 'none';
-}
-function updateKeyStatus(hasKey) {
-    const indicator = document.getElementById('key-indicator');
-    const text = document.getElementById('key-text');
-    if (hasKey) {
-        indicator.textContent = '✅';
-        text.textContent = 'Gemini API Key Set — AI Mode Active';
-        text.style.color = '#4CAF50';
-    } else {
-        indicator.textContent = '⚙️';
-        text.textContent = 'Set API Key for AI Mode (optional)';
-        text.style.color = '';
-    }
-}
-// Init key status on load
-document.addEventListener('DOMContentLoaded', () => {
-    const hasKey = !!localStorage.getItem('gemini_api_key');
-    updateKeyStatus(hasKey);
-});
-
 // Enter key for chat input
 document.addEventListener('DOMContentLoaded', () => {
     const chatInput = document.getElementById('gita-chat-input');
@@ -481,6 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
 
 // ==== BOOKING FORM ====
 const bookingForm = document.getElementById('booking-form');
@@ -499,12 +463,21 @@ if (bookingForm) {
             pob: formData.get('pob'), pob_lat: formData.get('pob_lat'), pob_lon: formData.get('pob_lon'),
             question: formData.get('question'), sex: formData.get('sex')
         };
+        // Populate order summary
+        document.getElementById('pay-customer-name').innerText = currentBookingData.name;
+        document.getElementById('pay-customer-dob').innerText = `${currentBookingData.dob} • ${currentBookingData.tob}`;
         document.getElementById('pay-service-name').innerText = currentBookingData.service;
         document.getElementById('pay-amount').innerText = currentBookingData.price;
         bookingForm.style.display = 'none';
         document.getElementById('payment-gateway').style.display = 'block';
         document.getElementById('payment-gateway').scrollIntoView({ behavior: 'smooth' });
     });
+}
+
+function goBackToForm() {
+    document.getElementById('payment-gateway').style.display = 'none';
+    bookingForm.style.display = 'flex';
+    bookingForm.scrollIntoView({ behavior: 'smooth' });
 }
 
 async function proceedToRazorpay() {
@@ -527,7 +500,7 @@ async function proceedToRazorpay() {
         };
         const rzp = new Razorpay(options); rzp.open();
     } catch(e) { alert("Payment error: " + e.message); }
-    finally { btn.innerHTML = '<i class="fas fa-credit-card"></i> Pay via Razorpay'; btn.disabled = false; }
+    finally { btn.innerHTML = '<span class="pay-btn-shimmer"></span><i class="fas fa-lock"></i><span>Pay Securely</span>'; btn.disabled = false; }
 }
 
 // ==== NEWS ====
@@ -536,13 +509,47 @@ async function fetchNews() {
         const res = await fetch('/api/news');
         const data = await res.json();
         const marquee = document.getElementById('news-content-marquee');
-        if (marquee) {
-            const cleanHtml = data.news.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank">✦ $1 ✦</a>');
-            marquee.innerHTML = `<span>${cleanHtml}</span> <span>${cleanHtml}</span>`;
+        if (marquee && data.news) {
+            // Parse markdown links [title](url) into proper anchor elements
+            const newsText = data.news;
+            const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+            let htmlParts = [];
+            let lastIndex = 0;
+            let match;
+            while ((match = linkRegex.exec(newsText)) !== null) {
+                // Add text before this match
+                if (match.index > lastIndex) {
+                    htmlParts.push(`<span class="news-separator">${newsText.slice(lastIndex, match.index)}</span>`);
+                }
+                // Create a proper clickable link with explicit mobile-friendly styles
+                htmlParts.push(`<a href="${match[2]}" target="_blank" rel="noopener noreferrer" class="news-link" onclick="window.open(this.href,'_blank');return false;">✦ ${match[1]} ✦</a>`);
+                lastIndex = match.index + match[0].length;
+            }
+            if (lastIndex < newsText.length) {
+                htmlParts.push(`<span class="news-separator">${newsText.slice(lastIndex)}</span>`);
+            }
+            const finalHtml = htmlParts.join('');
+            // Duplicate for seamless looping
+            marquee.innerHTML = `<span class="news-inner">${finalHtml}</span><span class="news-inner">${finalHtml}</span>`;
         }
-    } catch(e) {}
+    } catch(e) {
+        console.warn('News fetch error:', e);
+    }
 }
-window.onload = fetchNews;
+window.onload = () => {
+    fetchNews();
+    // Pause marquee on touch for iOS/Android so news links are tappable
+    const newsTrack = document.querySelector('.news-track');
+    const newsContent = document.getElementById('news-content-marquee');
+    if (newsTrack && newsContent) {
+        newsTrack.addEventListener('touchstart', () => {
+            newsContent.style.animationPlayState = 'paused';
+        }, { passive: true });
+        newsTrack.addEventListener('touchend', () => {
+            setTimeout(() => { newsContent.style.animationPlayState = 'running'; }, 3000);
+        }, { passive: true });
+    }
+};
 
 // ==== NAKSHATRA AUTOCOMPLETE + FORM ====
 setupAutocomplete('nak-pob', 'nak-pob-dropdown', 'nak-lat', 'nak-lon');
