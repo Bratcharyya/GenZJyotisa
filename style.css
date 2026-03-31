@@ -35,6 +35,10 @@ html {
   overflow-x: hidden;
 }
 
+body {
+  overflow-x: hidden;
+}
+
 /* --- News Marquee --- */
 .news-marquee-container {
     display: flex;
@@ -1564,21 +1568,28 @@ input[type="date"]::-webkit-inner-spin-button {
 .sidebar {
     position: fixed;
     top: 0;
-    right: -320px; /* Initially hidden on the right */
+    right: 0;
     width: 320px;
+    max-width: 85vw;
     height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile */
     background: #0d0d2b;
     z-index: 2000;
-    transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transform: translateX(100%); /* Fully hidden off-screen */
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     border-left: 1px solid var(--border-light);
     display: flex;
     flex-direction: column;
     padding: 2.5rem 2rem;
     box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    visibility: hidden; /* Extra safety: prevents interaction when hidden */
 }
 
 .sidebar.active {
-    right: 0;
+    transform: translateX(0);
+    visibility: visible;
 }
 
 .sidebar-overlay {
@@ -1796,7 +1807,8 @@ input[type="date"]::-webkit-inner-spin-button {
   }
 
   .sidebar {
-    width: 85%; /* Wider on small screens */
+    width: 85%;
+    max-width: 85vw;
   }
 
   /* Timeline Mobile Fix */
