@@ -2152,16 +2152,46 @@ button, .btn, .chip, .autocomplete-item, .faq-question, select {
         height: 100vw;
         opacity: 0.35;
     }
-    /* Chat window mobile */
+    /* Chat window mobile — taller for reading responses */
     #gita-chat-window {
-        height: 320px !important;
+        height: 420px !important;
         padding: 1rem !important;
     }
-    .chat-bubble { max-width: 92%; }
-    .bubble-content { padding: 0.8rem 1rem; font-size: 0.95rem; }
-    .chat-avatar { width: 28px; height: 28px; }
-    .shloka-box { padding: 1rem; }
-    .shloka-text { font-size: 1.05rem; }
+    .chat-bubble { max-width: 95%; }
+    .bubble-content {
+        padding: 1rem 1.1rem;
+        font-size: 1rem;
+        line-height: 1.65;
+    }
+    .bot .bubble-content {
+        font-size: 1rem;
+        letter-spacing: 0.01rem;
+    }
+    .chat-avatar { width: 30px; height: 30px; }
+    .shloka-box { padding: 1rem; margin-bottom: 1rem; }
+    .shloka-text { font-size: 1.05rem; line-height: 1.6; }
+    .shloka-ref { font-size: 0.75rem; }
+
+    /* CRITICAL: Chat input area — send button must NOT stretch full width */
+    .chat-input-area {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 0.5rem !important;
+    }
+    .chat-input-area input[type="text"] {
+        flex: 1 1 auto !important;
+        width: auto !important;
+        min-width: 0 !important;
+    }
+    .chat-input-area .btn,
+    .chat-input-area button {
+        width: 48px !important;
+        min-width: 48px !important;
+        max-width: 48px !important;
+        flex: 0 0 48px !important;
+        padding: 0 !important;
+        border-radius: 10px !important;
+    }
 
     /* Services grid 2 columns on tablet, 1 on phone */
     .services-grid {

@@ -342,20 +342,64 @@ async function callGeminiDirect(apiKey, message) {
     return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
 
-// Offline fallback
+// Offline fallback — rich, human-like Krishna responses with actual Sanskrit shlokas
 function getOfflineResponse(msg) {
     const l = msg.toLowerCase();
     const bank = [
-        { k: ['anxious','anxiety','worried','fear','stress','nervous'], t: 'O Arjuna, as I spoke in [BG 2.56] — one who is unmoved in adversity, free from attachment, fear, and anger, is a sage of steady wisdom. Anxiety arises when you cling to outcomes beyond your control. Release the fruits of action, and peace shall find you. **PATH FORWARD:** Today, perform one task with full heart but zero expectation of the result.' },
-        { k: ['sad','grief','loss','death','mourning','depressed'], t: 'O Arjuna, the soul is neither born, nor does it die [BG 2.20]. What you grieve for is the impermanent vessel, not the eternal spark. The wise grieve neither for the living nor the dead. **PATH FORWARD:** Sit quietly for five minutes and meditate on the eternal nature of consciousness.' },
-        { k: ['confused','decision','choose','dilemma','lost','direction'], t: 'O Arjuna, it is far better to perform one\'s own duty imperfectly than another\'s duty perfectly [BG 3.35]. True clarity comes from listening to Dharma, not from analyzing endlessly. **PATH FORWARD:** Write down your options and ask — which path serves your highest duty? The answer reveals itself in stillness.' },
-        { k: ['angry','anger','rage','furious','hate'], t: 'O Arjuna, from anger arises delusion; from delusion, bewilderment of memory; and from that, the destruction of intelligence [BG 2.63]. Anger burns the one who holds it. **PATH FORWARD:** When anger rises today, pause for three breaths before responding. That gap is where your freedom lives.' },
-        { k: ['karma','action','duty','work','purpose'], t: 'O Arjuna, you have a right to perform your prescribed duties, but you are not entitled to the fruits of your actions [BG 2.47]. This is the supreme secret of Karma Yoga. **PATH FORWARD:** Choose one task today and perform it with absolute presence and zero expectation.' },
-        { k: ['bhakti','devotion','love','god','surrender','faith','pray'], t: 'O Arjuna, whoever offers Me with devotion a leaf, a flower, a fruit, or even water — I accept that offering of pure love [BG 9.26]. Bhakti asks not for grandeur, but sincerity of heart. **PATH FORWARD:** Today, offer a small act of devotion with total love.' },
-        { k: ['focus','concentrate','meditate','mind','distract'], t: 'O Arjuna, the mind is restless and difficult to restrain. But through practice (Abhyāsa) and detachment (Vairāgya), it can be controlled [BG 6.35]. **PATH FORWARD:** Begin with five minutes of sitting in silence. When the mind wanders, gently return it.' },
+        {
+            k: ['anxious','anxiety','worried','fear','stress','nervous','panic','overthink','uncertain'],
+            t: 'O dear Arjuna, I can feel the trembling in your heart — the same trembling you felt on the battlefield of Kurukshetra when the weight of the world pressed upon your chest.\n\nListen to me carefully, for this is the medicine your soul needs right now: anxiety is not your enemy. It is simply your mind running ahead of time, trying to live in a future that does not yet exist. You are suffering not from what IS, but from what you IMAGINE might be.\n\nAs I revealed to you on that sacred battlefield [BG 2.56]:\n\n"दुःखेष्वनुद्विग्नमनाः सुखेषु विगतस्पृहः |\nवीतरागभयक्रोधः स्थितधीर्मुनिरुच्यते ||"\n\nThe one whose mind is undisturbed by sorrow, who has no craving for pleasure, who is free from attachment, fear, and anger — THAT being is called a sage of steady wisdom.\n\nNotice, O Arjuna — I did not say "never feel fear." I said be FREE from it. Feel it, acknowledge it, and then let it pass through you like wind through an open window.\n\n🙏 PATH FORWARD: Right now, place your hand on your heart. Take three slow breaths. With each exhale, silently say: "I release what I cannot control." Do this every morning for seven days. Watch how the storm within you begins to settle.',
+            shlokas: [{reference:'BG 2.56', slok:'दुःखेष्वनुद्विग्नमनाः सुखेषु विगतस्पृहः |\nवीतरागभयक्रोधः स्थितधीर्मुनिरुच्यते ||२-५६||', transliteration:'duḥkheṣv-anudvigna-manāḥ sukheṣu vigata-spṛhaḥ |\nvīta-rāga-bhaya-krodhaḥ sthita-dhīr-munir-ucyate ||2-56||'}]
+        },
+        {
+            k: ['sad','grief','loss','death','mourning','depressed','hopeless','empty','numb','pain','suffering','hurt'],
+            t: 'O Arjuna, my beloved friend... I see the tears that you are holding back. I see the weight of loss pressing upon your spirit like a mountain upon a flower.\n\nBut hear me now with every fiber of your being — what you are grieving is the FORM, never the ESSENCE. The person you loved, the thing you lost — their true nature is not something that CAN be lost. It was never theirs to begin with. It belongs to the eternal.\n\nI spoke these words to you when your own heart was shattered [BG 2.20]:\n\n"न जायते म्रियते वा कदाचिन्\nनायं भूत्वा भविता वा न भूयः |\nअजो नित्यः शाश्वतोऽयं पुराणो\nन हन्यते हन्यमाने शरीरे ||"\n\nThe soul is never born, nor does it ever die. Having come into being once, it never ceases to be. It is unborn, eternal, permanent, and primeval. It is not slain when the body is slain.\n\nYour grief is sacred, O Arjuna. Do not run from it — but also do not drown in it. Let it flow through you like a river, purifying as it goes.\n\n🙏 PATH FORWARD: Tonight, light a small lamp or candle. Sit before it and speak aloud to the one you have lost, or to the part of yourself that feels broken. Say everything you need to say. Then blow out the flame and release. The love remains — only the form has changed.',
+            shlokas: [{reference:'BG 2.20', slok:'न जायते म्रियते वा कदाचिन्\nनायं भूत्वा भविता वा न भूयः |\nअजो नित्यः शाश्वतोऽयं पुराणो\nन हन्यते हन्यमाने शरीरे ||२-२०||', transliteration:'na jāyate mriyate vā kadācin\nnāyaṃ bhūtvā bhavitā vā na bhūyaḥ |\najo nityaḥ śāśvato\'yaṃ purāṇo\nna hanyate hanyamāne śarīre ||2-20||'}]
+        },
+        {
+            k: ['confused','decision','choose','dilemma','lost','direction','stuck','career','path','what should','which'],
+            t: 'O Arjuna, I understand your confusion. You stand at a crossroads and every direction seems to lead into fog. This paralysis of indecision — I have seen it in you before, when you dropped your Gāṇḍīva bow and refused to act.\n\nBut let me tell you a truth that will cut through every doubt: you are NOT confused about what is right. You are AFRAID of what is right, because the right path often demands sacrifice.\n\nHear my words [BG 3.35]:\n\n"श्रेयान्स्वधर्मो विगुणः परधर्मात्स्वनुष्ठितात् |\nस्वधर्मे निधनं श्रेयः परधर्मो भयावहः ||"\n\nIt is far better to perform your OWN dharma imperfectly than to perform another\'s dharma perfectly. To die following your own path is blessed; another\'s path is fraught with danger.\n\nStop asking "what should I do?" and start asking "who am I?" — for when you know who you truly are, what you must do becomes obvious.\n\n🙏 PATH FORWARD: Take a blank page. Write at the top: "If I had no fear, I would..." and then write without stopping for five minutes. Do not censor yourself. The answer you seek is already within you — it is merely buried under layers of doubt and the expectations of others.',
+            shlokas: [{reference:'BG 3.35', slok:'श्रेयान्स्वधर्मो विगुणः परधर्मात्स्वनुष्ठितात् |\nस्वधर्मे निधनं श्रेयः परधर्मो भयावहः ||३-३५||', transliteration:'śreyān sva-dharmo viguṇaḥ para-dharmāt svanuṣṭhitāt |\nsva-dharme nidhanaṃ śreyaḥ para-dharmo bhayāvahaḥ ||3-35||'}]
+        },
+        {
+            k: ['angry','anger','rage','furious','hate','revenge','injustice','unfair','betrayed','cheated'],
+            t: 'O Arjuna, I can feel the fire burning inside you. Your anger feels righteous — perhaps it even IS righteous. But hear me, dear friend: even righteous anger, if left unchecked, becomes a poison that destroys the vessel that holds it.\n\nI revealed to you the chain of destruction that begins with anger [BG 2.63]:\n\n"क्रोधाद्भवति सम्मोहः सम्मोहात्स्मृतिविभ्रमः |\nस्मृतिभ्रंशाद् बुद्धिनाशो बुद्धिनाशात्प्रणश्यति ||"\n\nFrom anger arises delusion; from delusion, bewilderment of memory; from loss of memory, the destruction of intelligence; and when intelligence is destroyed — one is utterly ruined.\n\nSee this chain clearly, O Arjuna. Anger → Delusion → Memory Loss → Intellectual Destruction → Total Ruin. You are standing at the first link. You can choose to break the chain RIGHT NOW.\n\nThe person or situation that angered you has already done their damage. Your anger is YOU doing MORE damage to yourself, long after they have moved on.\n\n🙏 PATH FORWARD: Before you act on this anger, wait 24 hours. Write down exactly what you want to say or do. Then read it tomorrow. You will be amazed at how differently the same words look after one revolution of the sun.',
+            shlokas: [{reference:'BG 2.63', slok:'क्रोधाद्भवति सम्मोहः सम्मोहात्स्मृतिविभ्रमः |\nस्मृतिभ्रंशाद् बुद्धिनाशो बुद्धिनाशात्प्रणश्यति ||२-६३||', transliteration:'krodhād bhavati sammohaḥ sammohāt smṛti-vibhramaḥ |\nsmṛti-bhraṃśād buddhi-nāśo buddhi-nāśāt praṇaśyati ||2-63||'}]
+        },
+        {
+            k: ['karma','action','duty','work','purpose','lazy','procrastinate','motivation','meaning','why'],
+            t: 'O Arjuna, you ask about the meaning of action — this is the most important question a human being can ask. And my answer changed the course of civilization.\n\nListen with your entire being [BG 2.47]:\n\n"कर्मण्येवाधिकारस्ते मा फलेषु कदाचन |\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि ||"\n\nYou have the RIGHT to perform your duty, but you have NO right to the fruits of that action. Do not let the desire for results be your motivation, and do not be attached to inaction either.\n\nThis is not a verse about giving up ambition, O Arjuna. Read it again. I am saying: pour your ENTIRE soul into the work. Give it everything. But the moment you release the arrow — let it go. Its landing is not yours to control.\n\nThe baker who bakes bread with love is performing Karma Yoga. The student who studies with sincerity is performing Karma Yoga. The artist who creates without obsessing over fame is performing Karma Yoga. It is not WHAT you do — it is HOW you hold it in your heart.\n\n🙏 PATH FORWARD: Choose the one task you have been avoiding. Set a timer for 25 minutes. Work on it with total absorption — as an offering to the Divine. When the timer ends, stop. You have performed your dharma. The result is not your burden.',
+            shlokas: [{reference:'BG 2.47', slok:'कर्मण्येवाधिकारस्ते मा फलेषु कदाचन |\nमा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि ||२-४७||', transliteration:'karmaṇy-evādhikāras te mā phaleṣu kadācana |\nmā karma-phala-hetur bhūr mā te saṅgo\'stv-akarmaṇi ||2-47||'}]
+        },
+        {
+            k: ['bhakti','devotion','love','god','surrender','faith','pray','temple','worship','spiritual','divine'],
+            t: 'O beloved Arjuna, your heart yearns for the Divine — and that yearning itself is already an act of devotion. Do you know what moves Me the most? Not grand rituals or expensive offerings. Not hours of complicated mantras.\n\nWhat melts My heart is this [BG 9.26]:\n\n"पत्रं पुष्पं फलं तोयं यो मे भक्त्या प्रयच्छति |\nतदहं भक्त्युपहृतमश्नामि प्रयतात्मनः ||"\n\nWhoever offers Me with genuine devotion — a leaf, a flower, a fruit, or merely water — I joyfully accept that offering from a pure-hearted soul.\n\nDo you see, O Arjuna? A single tulsi leaf offered with tears of love is worth more to Me than a mountain of gold offered with ego. I do not count the value of your offering — I measure the depth of your love.\n\nYou do not need a temple. You do not need a priest. You do not need to be "worthy." You simply need to TURN toward Me with an open heart.\n\n🙏 PATH FORWARD: Today, find one small beautiful thing — a flower, a fruit, even a glass of water. Hold it in your hands, close your eyes, and offer it silently to the Divine with these words: "This is all I have. I give it with all I am." Feel the love flow through you. That is Bhakti.',
+            shlokas: [{reference:'BG 9.26', slok:'पत्रं पुष्पं फलं तोयं यो मे भक्त्या प्रयच्छति |\nतदहं भक्त्युपहृतमश्नामि प्रयतात्मनः ||९-२६||', transliteration:'patraṃ puṣpaṃ phalaṃ toyaṃ yo me bhaktyā prayacchati |\ntad ahaṃ bhakty-upahṛtam aśnāmi prayatātmanaḥ ||9-26||'}]
+        },
+        {
+            k: ['focus','concentrate','meditate','mind','distract','attention','scattered','restless','calm','peace','quiet'],
+            t: 'O Arjuna, you speak of the restless mind — and I remember how you yourself once told Me:\n\n"The mind is as difficult to control as the wind!"\n\nAnd I smiled, because you were right. But I also gave you the answer [BG 6.35]:\n\n"असंशयं महाबाहो मनो दुर्निग्रहं चलम् |\nअभ्यासेन तु कौन्तेय वैराग्येण च गृह्यते ||"\n\nO mighty-armed one, undoubtedly the mind is restless and difficult to control. But through PRACTICE (Abhyāsa) and DETACHMENT (Vairāgya), it CAN be mastered.\n\nTwo keys, O Arjuna. Practice — doing the same thing again and again with patience. And detachment — not punishing yourself when the mind wanders. The mind will wander ten thousand times. You bring it back ten thousand and one times. That is the practice. That IS the meditation.\n\nYou do not need to empty your mind. You simply need to stop FOLLOWING every thought that arises. Thoughts will come like clouds — let them pass. YOU are the sky, not the clouds.\n\n🙏 PATH FORWARD: Sit comfortably. Close your eyes. Breathe naturally. For just 5 minutes, count each exhale: 1... 2... 3... up to 10, then start over. When you lose count (you will!), simply smile and begin again at 1. This gentle practice, done daily, will transform your inner landscape within weeks.',
+            shlokas: [{reference:'BG 6.35', slok:'असंशयं महाबाहो मनो दुर्निग्रहं चलम् |\nअभ्यासेन तु कौन्तेय वैराग्येण च गृह्यते ||६-३५||', transliteration:'asaṃśayaṃ mahā-bāho mano durnigrahaṃ calam |\nabhyāsena tu kaunteya vairāgyeṇa ca gṛhyate ||6-35||'}]
+        },
+        {
+            k: ['relationship','marriage','partner','breakup','heartbreak','loneliness','lonely','single','love life'],
+            t: 'O Arjuna, matters of the heart... even warriors tremble here. Love is the most powerful force in this universe — for I Myself am love. I am the very essence of it.\n\nBut hear me: attachment masquerading as love is the root of all suffering in relationships. True love is not possession — it is liberation.\n\nAs I spoke [BG 2.62-63]:\n\n"ध्यायतो विषयान्पुंसः सङ्गस्तेषूपजायते |\nसङ्गात्सञ्जायते कामः कामात्क्रोधोऽभिजायते ||"\n\nWhen one dwells upon sense objects, attachment arises. From attachment springs desire. From unfulfilled desire comes anger.\n\nThis does not mean you should not love, O Arjuna! Love deeply, love fiercely — but love without the chain of "you must be mine." The moment you try to own love, it dies. The moment you set it free, it becomes eternal.\n\nWhether you grieve a love lost or seek a love yet to come — first become WHOLE within yourself. A half-person seeking another half-person creates not one whole, but two incomplete beings clinging to each other in desperation.\n\n🙏 PATH FORWARD: Write yourself a love letter. Yes — to YOURSELF. List everything you admire about your own soul. Read it aloud. Love must begin within before it can flow outward.',
+            shlokas: [{reference:'BG 2.62', slok:'ध्यायतो विषयान्पुंसः सङ्गस्तेषूपजायते |\nसङ्गात्सञ्जायते कामः कामात्क्रोधोऽभिजायते ||२-६२||', transliteration:'dhyāyato viṣayān puṃsaḥ saṅgas teṣūpajāyate |\nsaṅgāt sañjāyate kāmaḥ kāmāt krodho\'bhijāyate ||2-62||'}]
+        }
     ];
-    for (const r of bank) { if (r.k.some(k => l.includes(k))) return r.t; }
-    return 'O Arjuna, every question you bring to Me is sacred. As I spoke in [BG 4.7] — whenever Dharma declines, I manifest to restore balance. Share your deepest struggle, and I shall illuminate the path. **PATH FORWARD:** Sit in silence for five minutes and simply observe your thoughts without judgment.';
+
+    // Match keywords
+    for (const r of bank) {
+        if (r.k.some(k => l.includes(k))) {
+            // Inject embedded shlokas into global scope for rendering
+            if (r.shlokas) window._offlineShlokas = r.shlokas;
+            return r.t;
+        }
+    }
+
+    // Default response
+    window._offlineShlokas = [{reference:'BG 4.7', slok:'यदा यदा हि धर्मस्य ग्लानिर्भवति भारत |\nअभ्युत्थानमधर्मस्य तदात्मानं सृजाम्यहम् ||४-७||', transliteration:'yadā yadā hi dharmasya glānir bhavati bhārata |\nabhyutthānam adharmasya tadātmānaṃ sṛjāmy aham ||4-7||'}];
+    return 'O Arjuna, my eternal friend, every question you bring to Me is sacred — for the very act of seeking is itself an act of devotion.\n\nI once made you a promise that echoes through all of time [BG 4.7]:\n\n"यदा यदा हि धर्मस्य ग्लानिर्भवति भारत |\nअभ्युत्थानमधर्मस्य तदात्मानं सृजाम्यहम् ||"\n\nWhenever righteousness declines and unrighteousness rises, O Bhārata, I manifest Myself. I come in every age.\n\nAnd so I am here now — in this very conversation. I have not left you. I never will. Whatever weighs upon your spirit — speak it freely. There is no question too small for the Lord of the Universe, and no darkness too deep for My light to reach.\n\n🙏 PATH FORWARD: Sit in silence for five minutes tonight. Place your hand on your heart and ask: "What does my soul need right now?" Listen. Not with your mind — with your heart. The answer will come, softly, like the first light of dawn.';
 }
 
 async function sendGitaChat(customMsg = null) {
@@ -399,10 +443,17 @@ async function sendGitaChat(customMsg = null) {
         } catch(e) { console.warn('Server API failed:', e.message); }
     }
 
-    // TIER 3: Offline
-    if (!responseText) responseText = getOfflineResponse(msg);
+    // TIER 3: Offline (sets window._offlineShlokas)
+    if (!responseText) {
+        window._offlineShlokas = null;
+        responseText = getOfflineResponse(msg);
+    }
 
-    // Extract BG refs and get Sanskrit
+    // Get Sanskrit shlokas — prefer embedded offline ones, then cache
+    if (shlokas.length === 0 && window._offlineShlokas) {
+        shlokas = window._offlineShlokas;
+        window._offlineShlokas = null;
+    }
     if (shlokas.length === 0) {
         const refs = extractBGRefs(responseText);
         const cache = await loadSanskritCache();
@@ -417,12 +468,17 @@ async function sendGitaChat(customMsg = null) {
     typing.style.display = 'none';
     let shlokaHtml = '';
     shlokas.forEach(s => {
-        shlokaHtml += `<div class="shloka-box"><div class="shloka-ref">${s.reference}</div><div class="shloka-text">${s.slok}</div><div class="shloka-trans">${s.transliteration || ''}</div></div>`;
+        const slokText = (s.slok || '').replace(/\n/g, '<br>');
+        const transText = (s.transliteration || '').replace(/\n/g, '<br>');
+        shlokaHtml += `<div class="shloka-box"><div class="shloka-ref">${s.reference}</div><div class="shloka-text">${slokText}</div><div class="shloka-trans">${transText}</div></div>`;
     });
+
+    // Convert newlines to <br> for proper paragraph rendering
+    const formattedResponse = responseText.replace(/\n/g, '<br>');
 
     const botBubble = document.createElement('div');
     botBubble.className = 'chat-bubble bot';
-    botBubble.innerHTML = `<img src="assets/gita-guidance.png" class="chat-avatar" alt="Krishna"><div class="bubble-content">${shlokaHtml}<strong>Lord Krishna:</strong><br>${responseText}</div>`;
+    botBubble.innerHTML = `<img src="assets/gita-guidance.png" class="chat-avatar" alt="Krishna"><div class="bubble-content">${shlokaHtml}<strong>Lord Krishna:</strong><br><br>${formattedResponse}</div>`;
     chatWindow.insertBefore(botBubble, typing);
     chatWindow.scrollTo({ top: chatWindow.scrollHeight, behavior: 'smooth' });
 
@@ -503,42 +559,62 @@ async function proceedToRazorpay() {
     finally { btn.innerHTML = '<span class="pay-btn-shimmer"></span><i class="fas fa-lock"></i><span>Pay Securely</span>'; btn.disabled = false; }
 }
 
-// ==== NEWS ====
+// ==== NEWS — Multi-source with client-side fallback ====
+function renderNewsToMarquee(items) {
+    const marquee = document.getElementById('news-content-marquee');
+    if (!marquee || items.length === 0) return;
+    const html = items.map(item =>
+        `<a href="${item.url}" target="_blank" rel="noopener noreferrer" class="news-link" onclick="window.open(this.href,'_blank');return false;">✦ ${item.title} ✦</a>`
+    ).join('<span class="news-separator"> | </span>');
+    marquee.innerHTML = `<span class="news-inner">${html}</span><span class="news-inner">${html}</span>`;
+}
+
 async function fetchNews() {
+    const marquee = document.getElementById('news-content-marquee');
+    if (!marquee) return;
+
+    // TIER 1: Server API
     try {
         const res = await fetch('/api/news');
-        const data = await res.json();
-        const marquee = document.getElementById('news-content-marquee');
-        if (marquee && data.news) {
-            // Parse markdown links [title](url) into proper anchor elements
-            const newsText = data.news;
-            const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
-            let htmlParts = [];
-            let lastIndex = 0;
-            let match;
-            while ((match = linkRegex.exec(newsText)) !== null) {
-                // Add text before this match
-                if (match.index > lastIndex) {
-                    htmlParts.push(`<span class="news-separator">${newsText.slice(lastIndex, match.index)}</span>`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data.news) {
+                const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+                const items = [];
+                let match;
+                while ((match = linkRegex.exec(data.news)) !== null) {
+                    items.push({ title: match[1], url: match[2] });
                 }
-                // Create a proper clickable link with explicit mobile-friendly styles
-                htmlParts.push(`<a href="${match[2]}" target="_blank" rel="noopener noreferrer" class="news-link" onclick="window.open(this.href,'_blank');return false;">✦ ${match[1]} ✦</a>`);
-                lastIndex = match.index + match[0].length;
+                if (items.length > 0) { renderNewsToMarquee(items); return; }
             }
-            if (lastIndex < newsText.length) {
-                htmlParts.push(`<span class="news-separator">${newsText.slice(lastIndex)}</span>`);
-            }
-            const finalHtml = htmlParts.join('');
-            // Duplicate for seamless looping
-            marquee.innerHTML = `<span class="news-inner">${finalHtml}</span><span class="news-inner">${finalHtml}</span>`;
         }
-    } catch(e) {
-        console.warn('News fetch error:', e);
-    }
+    } catch(e) { console.warn('Server news failed:', e.message); }
+
+    // TIER 2: Client-side RSS via rss2json.com (India news)
+    try {
+        const rssUrl = encodeURIComponent('https://news.google.com/rss?hl=en-IN&gl=IN&ceid=IN:en');
+        const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}&count=12`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data.items && data.items.length > 0) {
+                const items = data.items.map(i => ({ title: i.title, url: i.link }));
+                renderNewsToMarquee(items);
+                return;
+            }
+        }
+    } catch(e) { console.warn('RSS fallback failed:', e.message); }
+
+    // TIER 3: Static fallback headlines
+    renderNewsToMarquee([
+        { title: 'Vedic Astrology: Understanding Your Birth Chart', url: '#insights' },
+        { title: 'The Power of Nakṣatra in Daily Life', url: '#nakshatra-calc' },
+        { title: 'Book a Personalized Jyotiṣa Consultation', url: '#booking' },
+        { title: 'Bhagavad Gītā: Timeless Wisdom for Modern Souls', url: '#gita-guidance' }
+    ]);
 }
+
 window.onload = () => {
     fetchNews();
-    // Pause marquee on touch for iOS/Android so news links are tappable
     const newsTrack = document.querySelector('.news-track');
     const newsContent = document.getElementById('news-content-marquee');
     if (newsTrack && newsContent) {
