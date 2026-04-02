@@ -58,6 +58,9 @@ document.querySelectorAll('.faq-question').forEach(q => {
 // ==== INPUT FORMATTING ====
 function setupFormatting() {
     document.querySelectorAll('.dob-format').forEach(input => {
+        if (input.dataset.dobFormatBound === 'true') return;
+        input.dataset.dobFormatBound = 'true';
+
         input.addEventListener('input', function(e) {
             let val = this.value.replace(/\D/g, '');
             if (val.length > 8) val = val.slice(0, 8);
@@ -69,12 +72,17 @@ function setupFormatting() {
             }
             this.value = val;
             if (val.length === 14) {
-                const t = this.id === 'panchang-dob' ? 'panchang-tob' : 'tob-input';
-                document.getElementById(t)?.focus();
+                const nextTarget = this.dataset.nextTarget;
+                if (nextTarget) {
+                    document.getElementById(nextTarget)?.focus();
+                }
             }
         });
     });
     document.querySelectorAll('.tob-format').forEach(input => {
+        if (input.dataset.tobFormatBound === 'true') return;
+        input.dataset.tobFormatBound = 'true';
+
         input.addEventListener('input', function(e) {
             let val = this.value.replace(/\D/g, '');
             if (val.length > 4) val = val.slice(0, 4);
@@ -669,9 +677,14 @@ async function finalizeSuccessfulPayment(paymentResponse) {
 
     try {
         const verification = await verifyRazorpayPayment(paymentResponse);
-        const successMessage = verification.payment_status === 'captured'
-            ? 'Payment verified successfully. Opening WhatsApp confirmation...'
-            : 'Payment verified. Capture confirmation may take a moment, but your booking is recorded.';
+        const successMessageBase = verification.message || (
+            verification.payment_status === 'captured'
+                ? 'Payment verified successfully.'
+                : 'Payment verified. Capture confirmation may take a moment, but your booking is recorded.'
+        );
+        const successMessage = verification.whatsapp_url
+            ? `${successMessageBase} Opening WhatsApp confirmation...`
+            : successMessageBase;
 
         setPaymentStatus(successMessage, 'success');
         if (paymentWhatsappLink && verification.whatsapp_url) {

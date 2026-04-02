@@ -1,15 +1,20 @@
 from flask import Flask, request, jsonify, send_from_directory
 import hashlib
 import hmac
+import io
 import json
 import os
 import re
 import sqlite3
+import smtplib
+import ssl
+import textwrap
 import time
 import traceback
 import xml.etree.ElementTree as ET
 from datetime import datetime
-from email.utils import parsedate_to_datetime
+from email.message import EmailMessage
+from email.utils import formataddr, parsedate_to_datetime
 from urllib.parse import quote
 from uuid import uuid4
 
@@ -22,6 +27,13 @@ try:
 except ImportError:
     def load_dotenv(*_args, **_kwargs):
         return False
+try:
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+    REPORTLAB_AVAILABLE = True
+except ImportError:
+    REPORTLAB_AVAILABLE = False
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -39,10 +51,21 @@ WHATSAPP_NOTIFY_NUMBER = os.getenv("WHATSAPP_NOTIFY_NUMBER", "919630958614")
 RAZORPAY_KEY_ID = (os.getenv("RAZORPAY_KEY_ID") or os.getenv("RAZOR_KEY_ID") or "").strip()
 RAZORPAY_SECRET = (os.getenv("RAZORPAY_SECRET") or os.getenv("RAZOR_SECRET_ID") or "").strip()
 RAZORPAY_MERCHANT_ID = (os.getenv("RAZORPAY_MERCHANT_ID") or os.getenv("MERCHANT_ID") or "").strip()
+SMTP_HOST = (os.getenv("SMTP_HOST") or "").strip()
+SMTP_PORT = int((os.getenv("SMTP_PORT") or "587").strip() or "587")
+SMTP_USERNAME = (os.getenv("SMTP_USERNAME") or "").strip()
+SMTP_PASSWORD = (os.getenv("SMTP_PASSWORD") or "").strip()
+SMTP_USE_TLS = (os.getenv("SMTP_USE_TLS") or "true").strip().lower() not in {"0", "false", "no"}
+SMTP_FROM_EMAIL = (os.getenv("SMTP_FROM_EMAIL") or SMTP_USERNAME or "").strip()
+SMTP_FROM_NAME = (os.getenv("SMTP_FROM_NAME") or APP_DISPLAY_NAME).strip()
+OWNER_NOTIFICATION_EMAIL = (os.getenv("OWNER_NOTIFICATION_EMAIL") or "").strip()
+SUPPORT_EMAIL = (os.getenv("SUPPORT_EMAIL") or SMTP_FROM_EMAIL or "").strip()
 razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_SECRET)) if RAZORPAY_KEY_ID and RAZORPAY_SECRET else None
 
 if not razorpay_client:
     print("WARNING: Razorpay credentials are not configured. Payment endpoints will stay unavailable.")
+if not REPORTLAB_AVAILABLE:
+    print("WARNING: reportlab is not installed. PDF invoice generation will be unavailable.")
 
 SERVICE_CATALOG = {
     "quick-30min": {"name": "Quick Consultation (30 min)", "amount_rupees": 309},
@@ -339,6 +362,195 @@ def build_whatsapp_url(booking_row):
     return f"https://wa.me/{WHATSAPP_NOTIFY_NUMBER}?text={quote(message)}"
 
 
+def is_invoice_email_configured():
+    return bool(SMTP_HOST and SMTP_PORT and SMTP_USERNAME and SMTP_PASSWORD and SMTP_FROM_EMAIL)
+
+
+def format_invoice_amount(amount_paise):
+    return f"INR {(amount_paise or 0) / 100:.2f}"
+
+
+def build_invoice_filename(booking_row):
+    raw_value = booking_row["receipt"] or booking_row["razorpay_order_id"] or uuid4().hex
+    safe_value = re.sub(r"[^A-Za-z0-9_-]", "", str(raw_value))
+    return f"{safe_value or 'invoice'}-receipt.pdf"
+
+
+def build_invoice_pdf(booking_row):
+    if not REPORTLAB_AVAILABLE:
+        raise RuntimeError("PDF invoice generation is unavailable because reportlab is not installed.")
+
+    amount_text = format_invoice_amount(booking_row["amount"])
+    issued_at = booking_row["verified_at"] or booking_row["updated_at"] or booking_row["created_at"] or utc_now_iso()
+    invoice_number = booking_row["receipt"] or booking_row["razorpay_order_id"] or uuid4().hex[:12]
+    payment_status = (booking_row["payment_status"] or booking_row["status"] or "verified").upper()
+
+    buffer = io.BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=A4)
+    page_width, page_height = A4
+
+    pdf.setTitle(f"{APP_DISPLAY_NAME} Invoice {invoice_number}")
+    pdf.setAuthor(APP_DISPLAY_NAME)
+
+    pdf.setFillColor(colors.HexColor("#1a0b2e"))
+    pdf.rect(0, page_height - 115, page_width, 115, stroke=0, fill=1)
+
+    pdf.setFillColor(colors.HexColor("#c9a84c"))
+    pdf.setFont("Helvetica-Bold", 22)
+    pdf.drawString(40, page_height - 52, APP_DISPLAY_NAME)
+    pdf.setFillColor(colors.white)
+    pdf.setFont("Helvetica", 11)
+    pdf.drawString(40, page_height - 72, "Consultation Payment Receipt / Invoice")
+    if RAZORPAY_MERCHANT_ID:
+        pdf.drawString(40, page_height - 90, f"Merchant ID: {RAZORPAY_MERCHANT_ID}")
+    if SUPPORT_EMAIL:
+        pdf.drawString(40, page_height - 106, f"Support: {SUPPORT_EMAIL}")
+
+    y = page_height - 150
+
+    def section(title, lines):
+        nonlocal y
+        pdf.setFillColor(colors.HexColor("#c9a84c"))
+        pdf.setFont("Helvetica-Bold", 13)
+        pdf.drawString(40, y, title)
+        y -= 18
+
+        pdf.setFillColor(colors.black)
+        pdf.setFont("Helvetica", 10)
+        for line in lines:
+            wrapped_lines = textwrap.wrap(str(line), width=92) or [""]
+            for wrapped in wrapped_lines:
+                if y < 70:
+                    pdf.showPage()
+                    y = page_height - 50
+                    pdf.setFillColor(colors.black)
+                    pdf.setFont("Helvetica", 10)
+                pdf.drawString(50, y, wrapped)
+                y -= 14
+        y -= 10
+
+    section("Invoice Details", [
+        f"Invoice Number: {invoice_number}",
+        f"Issue Time (UTC): {issued_at}",
+        f"Receipt Reference: {booking_row['receipt']}",
+        f"Order ID: {booking_row['razorpay_order_id']}",
+        f"Payment ID: {booking_row['razorpay_payment_id'] or 'Pending'}",
+        f"Payment Status: {payment_status}",
+        f"Amount Paid: {amount_text}",
+        f"Currency: {booking_row['currency'] or PAYMENT_CURRENCY}",
+    ])
+
+    section("Customer Details", [
+        f"Name: {booking_row['name']}",
+        f"Email: {booking_row['email'] or 'Not shared'}",
+        f"WhatsApp: {booking_row['whatsapp']}",
+        f"DOB: {booking_row['dob']}",
+        f"TOB: {booking_row['tob']}",
+        f"POB: {booking_row['pob']}",
+        f"Sex: {booking_row['sex'] or 'Not shared'}",
+    ])
+
+    section("Consultation Details", [
+        f"Service: {booking_row['service']}",
+        f"Service Code: {booking_row['service_code']}",
+        f"Question / Focus: {booking_row['question'] or 'Not provided'}",
+    ])
+
+    pdf.setStrokeColor(colors.HexColor("#d9d1c3"))
+    pdf.line(40, 55, page_width - 40, 55)
+    pdf.setFillColor(colors.HexColor("#555555"))
+    pdf.setFont("Helvetica", 9)
+    pdf.drawString(40, 40, "This document acknowledges successful payment verification for a GenZ Jyotisa consultation.")
+    pdf.drawRightString(page_width - 40, 40, f"Generated by {APP_DISPLAY_NAME}")
+
+    pdf.save()
+    buffer.seek(0)
+    return buffer.getvalue()
+
+
+def send_email_with_pdf_attachment(recipient_email, subject, body, pdf_bytes, filename):
+    if not is_invoice_email_configured():
+        raise RuntimeError("SMTP delivery is not configured on the server.")
+
+    message = EmailMessage()
+    message["Subject"] = subject
+    message["From"] = formataddr((SMTP_FROM_NAME, SMTP_FROM_EMAIL))
+    message["To"] = recipient_email
+    if SUPPORT_EMAIL:
+        message["Reply-To"] = SUPPORT_EMAIL
+    message.set_content(body)
+    message.add_attachment(pdf_bytes, maintype="application", subtype="pdf", filename=filename)
+
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as smtp:
+        if SMTP_USE_TLS:
+            smtp.starttls(context=ssl.create_default_context())
+        smtp.login(SMTP_USERNAME, SMTP_PASSWORD)
+        smtp.send_message(message)
+
+
+def deliver_invoice_emails(booking_row):
+    result = {
+        "customer_sent": False,
+        "owner_sent": False,
+        "warning": "",
+        "sent_to": [],
+    }
+
+    if not booking_row["email"]:
+        result["warning"] = "Customer email is missing, so the invoice email could not be sent."
+        return result
+
+    if not REPORTLAB_AVAILABLE:
+        result["warning"] = "PDF invoice generation is unavailable on the server right now."
+        return result
+
+    if not is_invoice_email_configured():
+        result["warning"] = "Invoice email is not configured on the server right now."
+        return result
+
+    pdf_bytes = build_invoice_pdf(booking_row)
+    filename = build_invoice_filename(booking_row)
+    amount_text = format_invoice_amount(booking_row["amount"])
+
+    customer_subject = f"{APP_DISPLAY_NAME} invoice for {booking_row['service']}"
+    customer_body = "\n".join([
+        f"Hari Om {booking_row['name']},",
+        "",
+        "Your payment has been verified successfully.",
+        f"Service: {booking_row['service']}",
+        f"Amount: {amount_text}",
+        f"Payment ID: {booking_row['razorpay_payment_id'] or 'Pending'}",
+        f"Order ID: {booking_row['razorpay_order_id']}",
+        "",
+        "Your PDF invoice / receipt is attached to this email.",
+        "",
+        f"Support: {SUPPORT_EMAIL or 'Reply to this email'}",
+    ])
+
+    send_email_with_pdf_attachment(booking_row["email"], customer_subject, customer_body, pdf_bytes, filename)
+    result["customer_sent"] = True
+    result["sent_to"].append(booking_row["email"])
+
+    if OWNER_NOTIFICATION_EMAIL and OWNER_NOTIFICATION_EMAIL.lower() != booking_row["email"].lower():
+        owner_subject = f"Owner copy: {booking_row['service']} invoice for {booking_row['name']}"
+        owner_body = "\n".join([
+            "A customer payment has been verified and the PDF invoice is attached.",
+            "",
+            f"Customer: {booking_row['name']}",
+            f"Customer email: {booking_row['email']}",
+            f"WhatsApp: {booking_row['whatsapp']}",
+            f"Service: {booking_row['service']}",
+            f"Amount: {amount_text}",
+            f"Payment ID: {booking_row['razorpay_payment_id'] or 'Pending'}",
+            f"Order ID: {booking_row['razorpay_order_id']}",
+        ])
+        send_email_with_pdf_attachment(OWNER_NOTIFICATION_EMAIL, owner_subject, owner_body, pdf_bytes, filename)
+        result["owner_sent"] = True
+        result["sent_to"].append(OWNER_NOTIFICATION_EMAIL)
+
+    return result
+
+
 WORLD_NEWS_FEEDS = [
     {"source": "BBC", "url": "https://feeds.bbci.co.uk/news/world/rss.xml"},
     {"source": "NYT", "url": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml"},
@@ -615,14 +827,42 @@ def verify_payment():
 
         update_payment_booking(order_id, payment_id, signature, payment_status, payment_response)
         booking = fetch_payment_booking(order_id)
+        invoice_delivery = {
+            "customer_sent": False,
+            "owner_sent": False,
+            "warning": "",
+            "sent_to": [],
+        }
+        try:
+            invoice_delivery = deliver_invoice_emails(booking)
+        except Exception as invoice_error:
+            print(f"Invoice Email Warning: {invoice_error}")
+            traceback.print_exc()
+            invoice_delivery["warning"] = "Payment was verified, but the invoice email could not be sent automatically."
+
+        message = (
+            "Payment verified successfully."
+            if payment_status == "captured"
+            else "Payment verified. Capture confirmation may take a moment."
+        )
+        if invoice_delivery["customer_sent"]:
+            message += f" A PDF invoice has been emailed to {booking['email']}."
+        elif invoice_delivery["warning"]:
+            message += f" {invoice_delivery['warning']}"
+        if invoice_delivery["owner_sent"]:
+            message += " A copy has also been emailed to the merchant."
 
         return jsonify({
             "status": "success",
-            "message": "Payment verified successfully." if payment_status == "captured" else "Payment verified. Capture confirmation may take a moment.",
+            "message": message,
             "order_id": order_id,
             "payment_id": payment_id,
             "payment_status": payment_status,
             "whatsapp_url": build_whatsapp_url(booking),
+            "invoice_email_sent": invoice_delivery["customer_sent"],
+            "owner_copy_sent": invoice_delivery["owner_sent"],
+            "invoice_warning": invoice_delivery["warning"],
+            "invoice_recipients": invoice_delivery["sent_to"],
         }), 200
     except Exception as e:
         print(f"Razorpay Payment Verification Error: {e}")

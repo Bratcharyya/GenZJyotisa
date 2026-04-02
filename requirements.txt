@@ -7,3 +7,4 @@ requests
 flask
 razorpay
 python-dotenv
+reportlab

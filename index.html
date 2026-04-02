@@ -533,7 +533,7 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Date of Birth</label>
-                                <input type="text" id="dob-input" name="dob" required placeholder="DD / MM / YYYY" class="dob-format" maxlength="14">
+                                <input type="text" id="dob-input" name="dob" required placeholder="DD / MM / YYYY" class="dob-format" maxlength="14" data-next-target="tob-input">
                             </div>
                             <div class="form-group">
                                 <label>Time of Birth</label>
@@ -702,6 +702,15 @@
                         <a href="articles/bhairava-upasana.html" class="btn btn-outline btn-sm">Read Article</a>
                     </div>
                 </div>
+                <div class="article-card" data-aos="fade-up" data-aos-delay="300">
+                    <div style="height: 160px; background: url('assets/vishnu_nidra_dreams_1774753737372.png') center/cover;"></div>
+                    <div class="article-card-info">
+                        <span style="color: var(--accent-gold); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Dreams</span>
+                        <h3>Dreams: Lord Krishna Teachings</h3>
+                        <p>A traditional guide to auspicious dreams, dream timing, and the way sacred dream symbols are read in the Krishna teachings.</p>
+                        <a href="articles/dreams-lord-krishna-teachings.html" class="btn btn-outline btn-sm">Read Article</a>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -714,7 +723,7 @@
                 <form id="panchang-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
                     <div class="form-group">
                         <label>Date</label>
-                        <input type="text" id="panchang-dob" placeholder="DD / MM / YYYY" class="panchang-input dob-format" required maxlength="14">
+                        <input type="text" id="panchang-dob" placeholder="DD / MM / YYYY" class="panchang-input dob-format" required maxlength="14" data-next-target="panchang-tob">
                     </div>
                     <div class="form-group">
                         <label>Time</label>
@@ -795,7 +804,7 @@
                 <form id="nakshatra-form" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;">
                     <div class="form-group">
                         <label>Date of Birth</label>
-                        <input type="text" id="nak-dob" placeholder="DD / MM / YYYY" class="panchang-input dob-format" required maxlength="14">
+                        <input type="text" id="nak-dob" placeholder="DD / MM / YYYY" class="panchang-input dob-format" required maxlength="14" data-next-target="nak-tob">
                     </div>
                     <div class="form-group">
                         <label>Time of Birth</label>
