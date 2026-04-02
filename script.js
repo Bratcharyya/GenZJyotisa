@@ -77,14 +77,19 @@ function setupFormatting() {
     document.querySelectorAll('.tob-format').forEach(input => {
         input.addEventListener('input', function(e) {
             let val = this.value.replace(/\D/g, '');
-            if (val.length > 6) val = val.slice(0, 6);
+            if (val.length > 4) val = val.slice(0, 4);
             if (e.inputType !== 'deleteContentBackward') {
-                if (val.length >= 4) val = val.slice(0,2) + ' : ' + val.slice(2,4) + ' : ' + val.slice(4);
+                if (val.length >= 2) val = val.slice(0,2) + ' : ' + val.slice(2,4);
                 else if (val.length >= 2) val = val.slice(0,2) + ' : ' + val.slice(2);
             } else if (this.value.endsWith(' :')) {
                 this.value = this.value.slice(0, -2); val = this.value.replace(/\D/g, '');
             }
             this.value = val;
+
+            if (val.length === 7) {
+                const ampmTarget = this.dataset.ampmTarget ? document.getElementById(this.dataset.ampmTarget) : this.parentElement?.querySelector('select');
+                ampmTarget?.focus();
+            }
         });
     });
 }
@@ -509,13 +514,36 @@ const paymentStatus = document.getElementById('payment-status');
 const paymentWhatsappLink = document.getElementById('payment-whatsapp-link');
 const paymentLinkFallback = document.getElementById('payment-link-fallback');
 const payCustomerWhatsapp = document.getElementById('pay-customer-whatsapp');
+const payCustomerEmail = document.getElementById('pay-customer-email');
 const razorpayPayBtn = document.getElementById('razorpay-pay-btn');
 const DEFAULT_PAY_BUTTON_HTML = '<span class="pay-btn-shimmer"></span><i class="fas fa-lock"></i><span>Pay Securely</span>';
 const RAZORPAY_PAYMENT_LINK = 'https://razorpay.me/@sarthakbhattacharyya';
 let currentBookingData = {};
 
 if (payCustomerWhatsapp) payCustomerWhatsapp.textContent = '--';
+if (payCustomerEmail) payCustomerEmail.textContent = '--';
 if (paymentLinkFallback) paymentLinkFallback.href = RAZORPAY_PAYMENT_LINK;
+
+async function parseApiResponse(response) {
+    const rawText = await response.text();
+    if (!rawText) return {};
+
+    try {
+        return JSON.parse(rawText);
+    } catch (error) {
+        const message = rawText
+            .replace(/<script[\s\S]*?<\/script>/gi, ' ')
+            .replace(/<style[\s\S]*?<\/style>/gi, ' ')
+            .replace(/<[^>]+>/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim();
+
+        return {
+            status: 'error',
+            message: message || `Server returned ${response.status}.`
+        };
+    }
+}
 
 function setPaymentStatus(message, tone = 'info') {
     if (!paymentStatus) return;
@@ -556,46 +584,29 @@ if (bookingForm) {
             serviceSelect.focus();
             return;
         }
+
         currentBookingData = {
             name: formData.get('name'),
-            service: selectedOption.textContent.split(' — ')[0],
-            price: selectedOption.getAttribute('data-price'),
-            dob: formData.get('dob'), tob: formData.get('tob') + ' ' + formData.get('ampm'),
-            pob: formData.get('pob'), pob_lat: formData.get('pob_lat'), pob_lon: formData.get('pob_lon'),
-            question: formData.get('question'), sex: formData.get('sex'),
             whatsapp: formData.get('whatsapp'),
+            email: formData.get('email'),
             sex: formData.get('sex'),
             serviceCode: selectedOption.value,
             service: getSelectedServiceName(selectedOption),
             amount: Number(selectedOption.getAttribute('data-price') || 0),
             dob: formData.get('dob'),
-            tob: `${formData.get('tob')} ${formData.get('ampm')}`,
+            tob: `${formData.get('tob')} ${formData.get('ampm')}`.trim(),
             pob: formData.get('pob'),
             pob_lat: formData.get('pob_lat'),
             pob_lon: formData.get('pob_lon'),
             question: formData.get('question')
         };
-        currentBookingData = {
-            name: formData.get('name'),
-            whatsapp: formData.get('whatsapp'),
-            sex: formData.get('sex'),
-            serviceCode: selectedOption.value,
-            service: getSelectedServiceName(selectedOption),
-            amount: Number(selectedOption.getAttribute('data-price') || 0),
-            dob: formData.get('dob'),
-            tob: `${formData.get('tob')} ${formData.get('ampm')}`,
-            pob: formData.get('pob'),
-            pob_lat: formData.get('pob_lat'),
-            pob_lon: formData.get('pob_lon'),
-            question: formData.get('question')
-        };
-        // Populate order summary
-        document.getElementById('pay-customer-name').innerText = currentBookingData.name;
-        document.getElementById('pay-customer-whatsapp').innerText = currentBookingData.whatsapp;
-        document.getElementById('pay-customer-dob').innerText = `${currentBookingData.dob} • ${currentBookingData.tob}`;
-        document.getElementById('pay-customer-dob').innerText = `${currentBookingData.dob} | ${currentBookingData.tob}`;
-        document.getElementById('pay-service-name').innerText = currentBookingData.service;
-        document.getElementById('pay-amount').innerText = currentBookingData.amount;
+
+        document.getElementById('pay-customer-name').textContent = currentBookingData.name || '--';
+        document.getElementById('pay-customer-whatsapp').textContent = currentBookingData.whatsapp || '--';
+        document.getElementById('pay-customer-email').textContent = currentBookingData.email || '--';
+        document.getElementById('pay-customer-dob').textContent = `${currentBookingData.dob} | ${currentBookingData.tob}`;
+        document.getElementById('pay-service-name').textContent = currentBookingData.service || '--';
+        document.getElementById('pay-amount').textContent = currentBookingData.amount || 0;
         resetPaymentUI();
         setPaymentStatus('Payment will be verified on the server before your consultation is confirmed.', 'info');
         bookingForm.style.display = 'none';
@@ -611,7 +622,7 @@ function goBackToForm() {
     bookingForm.scrollIntoView({ behavior: 'smooth' });
 }
 
-async function proceedToRazorpay() {
+async function legacyProceedToRazorpay() {
     const btn = document.getElementById('razorpay-pay-btn');
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Initializing...';
     btn.disabled = true;
@@ -620,7 +631,7 @@ async function proceedToRazorpay() {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ amount: currentBookingData.price, service: currentBookingData.service })
         });
-        const orderData = await response.json();
+        const orderData = await parseApiResponse(response);
         const options = {
             "key": "rzp_test_SWEFJ7XQd5AYV3", "amount": orderData.amount, "currency": "INR",
             "name": "GenZ Jyotiṣa", "order_id": orderData.order_id,
@@ -645,7 +656,7 @@ async function verifyRazorpayPayment(paymentResponse) {
             signature: paymentResponse.razorpay_signature
         })
     });
-    const result = await response.json();
+    const result = await parseApiResponse(response);
     if (!response.ok || result.status !== 'success') {
         throw new Error(result.message || 'Payment verification failed.');
     }
@@ -700,6 +711,7 @@ async function proceedToRazorpay() {
             body: JSON.stringify({
                 name: currentBookingData.name,
                 whatsapp: currentBookingData.whatsapp,
+                email: currentBookingData.email,
                 sex: currentBookingData.sex,
                 service_code: currentBookingData.serviceCode,
                 dob: currentBookingData.dob,
@@ -710,7 +722,7 @@ async function proceedToRazorpay() {
                 question: currentBookingData.question
             })
         });
-        const orderData = await response.json();
+        const orderData = await parseApiResponse(response);
         if (!response.ok || orderData.status !== 'success') {
             throw new Error(orderData.message || 'Unable to start payment right now.');
         }
@@ -724,11 +736,13 @@ async function proceedToRazorpay() {
             order_id: orderData.order_id,
             prefill: {
                 name: currentBookingData.name,
-                contact: currentBookingData.whatsapp
+                contact: currentBookingData.whatsapp,
+                email: currentBookingData.email
             },
             notes: {
                 service_code: currentBookingData.serviceCode,
-                service_name: currentBookingData.service
+                service_name: currentBookingData.service,
+                customer_email: currentBookingData.email
             },
             theme: {
                 color: '#C9A84C'
@@ -886,13 +900,11 @@ async function fetchNews() {
 
     try {
         const res = await fetch('/api/news', { cache: 'no-store' });
-        if (res.ok) {
-            const data = await res.json();
-            if (Array.isArray(data.headlines) && data.headlines.length > 0) {
-                renderNewsToMarquee(data.headlines);
-                setNewsUpdatedLabel(formatNewsUpdatedText(data.updated_at, data.status));
-                return;
-            }
+        const data = await parseApiResponse(res);
+        if (res.ok && Array.isArray(data.headlines) && data.headlines.length > 0) {
+            renderNewsToMarquee(data.headlines);
+            setNewsUpdatedLabel(formatNewsUpdatedText(data.updated_at, data.status));
+            return;
         }
     } catch (e) {
         console.warn('News refresh failed:', e.message);
@@ -907,7 +919,7 @@ async function fetchNews() {
     setNewsUpdatedLabel('Offline fallback');
 }
 
-window.onload = () => {
+window.addEventListener('load', () => {
     fetchNews();
     const newsTrack = document.querySelector('.news-track');
     const newsContent = document.getElementById('news-content-marquee');
@@ -924,7 +936,7 @@ window.onload = () => {
     newsRefreshTimer = window.setInterval(() => {
         if (!document.hidden) fetchNews();
     }, NEWS_REFRESH_INTERVAL_MS);
-};
+});
 
 document.addEventListener('visibilitychange', () => {
     if (!document.hidden) fetchNews();

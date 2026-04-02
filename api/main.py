@@ -17,7 +17,11 @@ import google.generativeai as genai
 import pandas as pd
 import razorpay
 import requests
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    def load_dotenv(*_args, **_kwargs):
+        return False
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -157,7 +161,7 @@ def validate_booking_payload(data):
         "question": clean_text(data.get("question"), 1000),
     }
 
-    required_fields = ("name", "whatsapp", "sex", "dob", "tob", "pob")
+    required_fields = ("name", "whatsapp", "email", "sex", "dob", "tob", "pob")
     missing = [field for field in required_fields if not booking[field]]
     if missing:
         raise ValueError("Please complete all required booking details before paying.")
@@ -165,8 +169,12 @@ def validate_booking_payload(data):
     if len(booking["whatsapp"]) < 10:
         raise ValueError("Please enter a valid WhatsApp number.")
 
+    email_ok = re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", booking["email"])
+    if not email_ok:
+        raise ValueError("Please enter a valid email address.")
+
     dob_ok = re.fullmatch(r"\d{2}\s*/\s*\d{2}\s*/\d{4}", booking["dob"])
-    tob_ok = re.fullmatch(r"\d{2}\s*:\s*\d{2}\s*:\s*\d{2}(?:\s+(AM|PM))?", booking["tob"], re.IGNORECASE)
+    tob_ok = re.fullmatch(r"\d{2}\s*:\s*\d{2}(?:\s+(AM|PM))?", booking["tob"], re.IGNORECASE)
     if not dob_ok or not tob_ok:
         raise ValueError("Please review the date and time of birth before continuing.")
 
@@ -315,6 +323,7 @@ def build_whatsapp_message(booking_row):
         "",
         f"Name: {booking_row['name']}",
         f"WhatsApp: {booking_row['whatsapp']}",
+        f"Email: {booking_row['email'] or 'Not shared'}",
         f"DOB: {booking_row['dob']}",
         f"TOB: {booking_row['tob']}",
         f"POB: {booking_row['pob']}",
@@ -506,7 +515,7 @@ def create_order():
         if not razorpay_client:
             return jsonify({
                 "status": "error",
-                "message": "Razorpay live credentials are not configured on the server."
+                "message": "Razorpay live credentials are not configured on the server. Set RAZOR_KEY_ID, RAZOR_SECRET_ID, and MERCHANT_ID in Vercel."
             }), 503
 
         payload = request.get_json(silent=True) or {}
@@ -522,6 +531,7 @@ def create_order():
                 "service_name": booking["service"],
                 "customer_name": booking["name"],
                 "customer_phone": booking["whatsapp"],
+                "customer_email": booking["email"],
             },
         }
         if RAZORPAY_MERCHANT_ID:
@@ -541,6 +551,7 @@ def create_order():
             "customer": {
                 "name": booking["name"],
                 "contact": booking["whatsapp"],
+                "email": booking["email"],
             },
             "service": booking["service"],
         }), 200
@@ -561,7 +572,7 @@ def verify_payment():
         if not razorpay_client:
             return jsonify({
                 "status": "error",
-                "message": "Razorpay live credentials are not configured on the server."
+                "message": "Razorpay live credentials are not configured on the server. Set RAZOR_KEY_ID, RAZOR_SECRET_ID, and MERCHANT_ID in Vercel."
             }), 503
 
         payload = request.get_json(silent=True) or {}
