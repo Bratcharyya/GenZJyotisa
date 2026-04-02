@@ -57,9 +57,10 @@ body {
 .news-header {
     background: var(--accent-gold);
     color: var(--bg-dark);
-    padding: 0 1.2rem;
+    padding: 0 1rem;
     display: flex;
     align-items: center;
+    gap: 0.75rem;
     font-weight: 900;
     font-size: 0.8rem;
     letter-spacing: 1.5px;
@@ -68,6 +69,20 @@ body {
     z-index: 2;
     text-transform: uppercase;
     flex-shrink: 0;
+}
+
+.news-header-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.news-updated {
+    font-family: var(--font-alt);
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    opacity: 0.85;
 }
 
 .news-track {
@@ -126,7 +141,27 @@ body {
     cursor: pointer;
     position: relative;
     z-index: 10;
+    gap: 0.55rem;
     transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.news-content .news-source {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.12rem 0.42rem;
+    border-radius: 999px;
+    background: rgba(201,168,76,0.12);
+    border: 1px solid rgba(201,168,76,0.22);
+    color: var(--accent-gold);
+    font-family: var(--font-alt);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.news-content .news-title {
+    display: inline-block;
 }
 
 .news-content .news-link:hover,
@@ -1165,6 +1200,83 @@ input[type="date"]::-webkit-inner-spin-button {
   100% { left: 150%; }
 }
 
+.pay-status {
+  display: none;
+  max-width: 420px;
+  margin: 0 auto 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  text-align: left;
+  border: 1px solid transparent;
+}
+
+.pay-status-info {
+  color: #f2ead1;
+  background: rgba(255, 213, 79, 0.08);
+  border-color: rgba(255, 213, 79, 0.2);
+}
+
+.pay-status-success {
+  color: #dbf4df;
+  background: rgba(76, 175, 80, 0.12);
+  border-color: rgba(76, 175, 80, 0.24);
+}
+
+.pay-status-error {
+  color: #ffd6d6;
+  background: rgba(244, 67, 54, 0.12);
+  border-color: rgba(244, 67, 54, 0.25);
+}
+
+.pay-direct-link {
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto 1.5rem;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.95rem 1.2rem;
+  border-radius: 16px;
+  color: #dcffe6;
+  text-decoration: none;
+  font-weight: 700;
+  background: rgba(37, 211, 102, 0.15);
+  border: 1px solid rgba(37, 211, 102, 0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pay-direct-link:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+}
+
+.pay-direct-link-alt {
+  margin-bottom: 0;
+  color: #ffeec4;
+  background: rgba(201, 168, 76, 0.12);
+  border-color: rgba(201, 168, 76, 0.25);
+}
+
+.pay-fallback-panel {
+  max-width: 420px;
+  margin: 0 auto 1.5rem;
+  padding: 1rem;
+  border-radius: 14px;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.pay-fallback-panel p {
+  margin-bottom: 0.9rem;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: #bfb6d5;
+}
+
 /* Trust Badges */
 .pay-trust-strip {
   display: flex;
@@ -1802,6 +1914,9 @@ input[type="date"]::-webkit-inner-spin-button {
   .news-header, .news-content a, .news-content span {
     font-size: 0.75rem;
   }
+  .news-updated {
+    display: none;
+  }
   .navbar {
     top: 32px !important;
   }
@@ -2264,6 +2379,7 @@ button, .btn, .chip, .autocomplete-item, .faq-question, select {
     /* News marquee compact */
     .news-marquee-container { height: 28px; }
     .news-header { font-size: 0.7rem; padding: 0 0.8rem; }
+    .news-updated { display: none; }
     .news-content a, .news-content span { font-size: 0.7rem; }
     .navbar { top: 28px !important; }
 }

@@ -51,7 +51,8 @@
     <!-- Breaking News Marquee -->
     <div class="news-marquee-container">
         <div class="news-header">
-            <i class="fas fa-bolt"></i> BREAKING NEWS
+            <span class="news-header-label"><i class="fas fa-bolt"></i> BREAKING NEWS</span>
+            <span id="news-last-updated" class="news-updated">Refreshing...</span>
         </div>
         <div class="news-track">
             <div class="news-content" id="news-content-marquee">
@@ -596,6 +597,10 @@
                                 <strong id="pay-customer-name">—</strong>
                             </div>
                             <div class="pay-row">
+                                <span><i class="fab fa-whatsapp"></i> WhatsApp</span>
+                                <strong id="pay-customer-whatsapp">â€”</strong>
+                            </div>
+                            <div class="pay-row">
                                 <span><i class="fas fa-calendar"></i> Birth Details</span>
                                 <strong id="pay-customer-dob">—</strong>
                             </div>
@@ -617,6 +622,17 @@
                             <span>Pay Securely</span>
                         </button>
 
+                        <div id="payment-status" class="pay-status" aria-live="polite" style="display:none;"></div>
+                        <a id="payment-whatsapp-link" class="pay-direct-link" href="#" target="_blank" rel="noopener noreferrer" style="display:none;">
+                            <i class="fab fa-whatsapp"></i> Open WhatsApp Confirmation
+                        </a>
+                        <div class="pay-fallback-panel">
+                            <p>If checkout does not open or fails, use the direct Razorpay payment link and then share the payment screenshot on WhatsApp so the booking can be matched manually.</p>
+                            <a id="payment-link-fallback" class="pay-direct-link pay-direct-link-alt" href="https://razorpay.me/@sarthakbhattacharyya" target="_blank" rel="noopener noreferrer">
+                                <i class="fas fa-arrow-up-right-from-square"></i> Pay via Razorpay Link
+                            </a>
+                        </div>
+
                         <!-- Trust Badges -->
                         <div class="pay-trust-strip">
                             <div class="pay-badge"><i class="fab fa-cc-visa"></i></div>
@@ -629,7 +645,7 @@
                         <!-- Security Footer -->
                         <div class="pay-security-footer">
                             <p><i class="fas fa-lock" style="color:#4CAF50;"></i> 256-bit SSL Encrypted &bull; PCI-DSS Compliant</p>
-                            <p style="margin-top:0.3rem;">Powered by <strong style="color:var(--accent-gold);">Razorpay</strong></p>
+                            <p style="margin-top:0.3rem;">Powered by <strong style="color:var(--accent-gold);">Razorpay</strong> &bull; Slot confirmed after payment verification</p>
                         </div>
 
                         <!-- Go Back -->

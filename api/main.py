@@ -1,36 +1,70 @@
 from flask import Flask, request, jsonify, send_from_directory
-import os
+import hashlib
+import hmac
 import json
+import os
+import re
 import sqlite3
-import pandas as pd
-import google.generativeai as genai
+import time
+import traceback
+import xml.etree.ElementTree as ET
 from datetime import datetime
+from email.utils import parsedate_to_datetime
+from urllib.parse import quote
+from uuid import uuid4
+
+import google.generativeai as genai
+import pandas as pd
+import razorpay
+import requests
+from dotenv import load_dotenv
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-import re
-import requests
-import razorpay
-import xml.etree.ElementTree as ET
-
-app = Flask(__name__, static_folder=".", static_url_path="")
-
-# Razorpay Client Initialization
-RAZORPAY_KEY_ID = "rzp_test_SWEFJ7XQd5AYV3"
-RAZORPAY_SECRET = "NGgLFiD1ZyXPpSgKfPO4TNx1"
-razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_SECRET))
 
 # --- Vercel Path Configuration ---
 # Vercel functions run with /api as the working directory sometimes, or the root.
 # Using absolute paths relative to this file's location (in /api/)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+load_dotenv(os.path.join(BASE_DIR, ".env"))
+
+app = Flask(__name__, static_folder=".", static_url_path="")
+
+APP_DISPLAY_NAME = "GenZ Jyotisa"
+PAYMENT_CURRENCY = "INR"
+WHATSAPP_NOTIFY_NUMBER = os.getenv("WHATSAPP_NOTIFY_NUMBER", "919630958614")
+RAZORPAY_KEY_ID = (os.getenv("RAZORPAY_KEY_ID") or os.getenv("RAZOR_KEY_ID") or "").strip()
+RAZORPAY_SECRET = (os.getenv("RAZORPAY_SECRET") or os.getenv("RAZOR_SECRET_ID") or "").strip()
+RAZORPAY_MERCHANT_ID = (os.getenv("RAZORPAY_MERCHANT_ID") or os.getenv("MERCHANT_ID") or "").strip()
+razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_SECRET)) if RAZORPAY_KEY_ID and RAZORPAY_SECRET else None
+
+if not razorpay_client:
+    print("WARNING: Razorpay credentials are not configured. Payment endpoints will stay unavailable.")
+
+SERVICE_CATALOG = {
+    "quick-30min": {"name": "Quick Consultation (30 min)", "amount_rupees": 309},
+    "natal-45min": {"name": "Natal Chart Reading (45 min)", "amount_rupees": 501},
+    "natal-60min": {"name": "Natal Chart (Extended - 60 min)", "amount_rupees": 1001},
+    "career-45min": {"name": "Career & Finance (45 min)", "amount_rupees": 501},
+    "love-60min": {"name": "Relationship Synastry (60 min)", "amount_rupees": 1001},
+    "muhurta-45min": {"name": "Muhurta Selection (30 min)", "amount_rupees": 501},
+    "prashna-45min": {"name": "Prashna (30 min)", "amount_rupees": 501},
+    "artomancy-45min": {"name": "Artomancy (45 min)", "amount_rupees": 509},
+    "dreams-30min": {"name": "Dream Interpretation (30 min)", "amount_rupees": 309},
+}
+
 DB_FILE = os.path.join(BASE_DIR, "bookings.db")
 GITA_DATA_PATH = os.path.join(BASE_DIR, "dataset", "gita_clean_dataset.csv")
 GITA_CACHE_FILE = os.path.join(BASE_DIR, "sanskrit_cache.json")
 
 # Database Setup
+def get_db_connection():
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    return conn
+
 def init_db():
     try:
-        conn = sqlite3.connect(DB_FILE)
+        conn = get_db_connection()
         c = conn.cursor()
         c.execute('''
             CREATE TABLE IF NOT EXISTS bookings (
@@ -46,12 +80,353 @@ def init_db():
                 question TEXT
             )
         ''')
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS payment_bookings (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                verified_at TEXT,
+                status TEXT NOT NULL,
+                payment_status TEXT,
+                amount INTEGER NOT NULL,
+                currency TEXT NOT NULL,
+                receipt TEXT NOT NULL,
+                merchant_id TEXT,
+                service_code TEXT NOT NULL,
+                service TEXT NOT NULL,
+                name TEXT NOT NULL,
+                whatsapp TEXT NOT NULL,
+                email TEXT,
+                sex TEXT,
+                dob TEXT NOT NULL,
+                tob TEXT NOT NULL,
+                pob TEXT NOT NULL,
+                pob_lat TEXT,
+                pob_lon TEXT,
+                question TEXT,
+                razorpay_order_id TEXT UNIQUE,
+                razorpay_payment_id TEXT UNIQUE,
+                razorpay_signature TEXT,
+                raw_order_response TEXT,
+                raw_payment_response TEXT
+            )
+        ''')
         conn.commit()
         conn.close()
     except Exception as e:
         print(f"DB Init Error: {e}")
 
 init_db()
+
+
+def utc_now_iso():
+    return datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
+
+
+def clean_text(value, max_length=255):
+    return re.sub(r"\s+", " ", str(value or "")).strip()[:max_length]
+
+
+def digits_only(value, max_length=20):
+    return re.sub(r"\D", "", str(value or ""))[:max_length]
+
+
+def get_service_details(service_code):
+    return SERVICE_CATALOG.get(clean_text(service_code, 60))
+
+
+def validate_booking_payload(data):
+    service_code = clean_text(data.get("service_code") or data.get("service"), 60)
+    service = get_service_details(service_code)
+    if not service:
+        raise ValueError("Please select a valid consultation.")
+
+    booking = {
+        "service_code": service_code,
+        "service": service["name"],
+        "amount_rupees": service["amount_rupees"],
+        "name": clean_text(data.get("name")),
+        "whatsapp": digits_only(data.get("whatsapp"), 15),
+        "email": clean_text(data.get("email")),
+        "sex": clean_text(data.get("sex"), 20),
+        "dob": clean_text(data.get("dob"), 30),
+        "tob": clean_text(data.get("tob"), 30),
+        "pob": clean_text(data.get("pob"), 255),
+        "pob_lat": clean_text(data.get("pob_lat"), 40),
+        "pob_lon": clean_text(data.get("pob_lon"), 40),
+        "question": clean_text(data.get("question"), 1000),
+    }
+
+    required_fields = ("name", "whatsapp", "sex", "dob", "tob", "pob")
+    missing = [field for field in required_fields if not booking[field]]
+    if missing:
+        raise ValueError("Please complete all required booking details before paying.")
+
+    if len(booking["whatsapp"]) < 10:
+        raise ValueError("Please enter a valid WhatsApp number.")
+
+    dob_ok = re.fullmatch(r"\d{2}\s*/\s*\d{2}\s*/\d{4}", booking["dob"])
+    tob_ok = re.fullmatch(r"\d{2}\s*:\s*\d{2}\s*:\s*\d{2}(?:\s+(AM|PM))?", booking["tob"], re.IGNORECASE)
+    if not dob_ok or not tob_ok:
+        raise ValueError("Please review the date and time of birth before continuing.")
+
+    return booking
+
+
+def create_receipt(service_code):
+    service_part = re.sub(r"[^a-z0-9]", "", service_code.lower())[:8] or "consult"
+    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+    return f"gzj_{service_part}_{timestamp}_{uuid4().hex[:6]}"[:40]
+
+
+def store_pending_booking(booking, order_data):
+    now = utc_now_iso()
+    conn = get_db_connection()
+    try:
+        conn.execute(
+            '''
+            INSERT INTO payment_bookings (
+                created_at, updated_at, verified_at, status, payment_status, amount, currency,
+                receipt, merchant_id, service_code, service, name, whatsapp, email, sex, dob,
+                tob, pob, pob_lat, pob_lon, question, razorpay_order_id, razorpay_payment_id,
+                razorpay_signature, raw_order_response, raw_payment_response
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''',
+            (
+                now,
+                now,
+                None,
+                "created",
+                order_data.get("status", "created"),
+                order_data["amount"],
+                order_data.get("currency", PAYMENT_CURRENCY),
+                order_data["receipt"],
+                RAZORPAY_MERCHANT_ID,
+                booking["service_code"],
+                booking["service"],
+                booking["name"],
+                booking["whatsapp"],
+                booking["email"],
+                booking["sex"],
+                booking["dob"],
+                booking["tob"],
+                booking["pob"],
+                booking["pob_lat"],
+                booking["pob_lon"],
+                booking["question"],
+                order_data["id"],
+                None,
+                None,
+                json.dumps(order_data),
+                None,
+            ),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def update_payment_booking(order_id, payment_id, signature, payment_status, payment_response):
+    now = utc_now_iso()
+    conn = get_db_connection()
+    try:
+        conn.execute(
+            '''
+            UPDATE payment_bookings
+            SET updated_at = ?, verified_at = ?, status = ?, payment_status = ?,
+                razorpay_payment_id = ?, razorpay_signature = ?, raw_payment_response = ?
+            WHERE razorpay_order_id = ?
+            ''',
+            (
+                now,
+                now,
+                "paid" if payment_status == "captured" else "authorized" if payment_status == "authorized" else "verified",
+                payment_status,
+                payment_id,
+                signature,
+                json.dumps(payment_response) if payment_response else None,
+                order_id,
+            ),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def fetch_payment_booking(order_id):
+    conn = get_db_connection()
+    try:
+        row = conn.execute(
+            "SELECT * FROM payment_bookings WHERE razorpay_order_id = ?",
+            (order_id,),
+        ).fetchone()
+        return row
+    finally:
+        conn.close()
+
+
+def store_basic_booking(data):
+    timestamp = utc_now_iso()
+    conn = get_db_connection()
+    try:
+        conn.execute(
+            '''
+            INSERT INTO bookings (timestamp, name, email, whatsapp, dob, tob, pob, service, question)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''',
+            (
+                timestamp,
+                clean_text(data.get("name")),
+                clean_text(data.get("email")),
+                digits_only(data.get("whatsapp"), 15),
+                clean_text(data.get("dob"), 30),
+                clean_text(data.get("tob"), 30),
+                clean_text(data.get("pob"), 255),
+                clean_text(data.get("service"), 255),
+                clean_text(data.get("question"), 1000),
+            ),
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def verify_payment_signature(order_id, payment_id, signature):
+    if not RAZORPAY_SECRET:
+        return False
+    generated_signature = hmac.new(
+        RAZORPAY_SECRET.encode("utf-8"),
+        f"{order_id}|{payment_id}".encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+    return hmac.compare_digest(generated_signature, signature)
+
+
+def build_whatsapp_message(booking_row):
+    amount_rupees = (booking_row["amount"] or 0) / 100
+    lines = [
+        "Hari Om! A payment has been verified.",
+        "",
+        f"Service: {booking_row['service']}",
+        f"Amount: INR {amount_rupees:.2f}",
+        f"Payment ID: {booking_row['razorpay_payment_id'] or 'Pending'}",
+        f"Order ID: {booking_row['razorpay_order_id']}",
+        "",
+        f"Name: {booking_row['name']}",
+        f"WhatsApp: {booking_row['whatsapp']}",
+        f"DOB: {booking_row['dob']}",
+        f"TOB: {booking_row['tob']}",
+        f"POB: {booking_row['pob']}",
+        f"Sex: {booking_row['sex'] or 'Not shared'}",
+    ]
+    if booking_row["question"]:
+        lines.extend(["", f"Focus: {booking_row['question']}"])
+    return "\n".join(lines)
+
+
+def build_whatsapp_url(booking_row):
+    message = build_whatsapp_message(booking_row)
+    return f"https://wa.me/{WHATSAPP_NOTIFY_NUMBER}?text={quote(message)}"
+
+
+WORLD_NEWS_FEEDS = [
+    {"source": "BBC", "url": "https://feeds.bbci.co.uk/news/world/rss.xml"},
+    {"source": "NYT", "url": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml"},
+    {"source": "Al Jazeera", "url": "https://www.aljazeera.com/xml/rss/all.xml"},
+    {"source": "The Guardian", "url": "https://www.theguardian.com/world/rss"},
+]
+NEWS_CACHE_TTL_SECONDS = 300
+NEWS_CACHE = {
+    "expires_at": 0,
+    "payload": None,
+}
+
+
+def parse_feed_timestamp(raw_value):
+    if not raw_value:
+        return 0
+    try:
+        parsed = parsedate_to_datetime(raw_value)
+        return parsed.timestamp()
+    except Exception:
+        try:
+            return datetime.fromisoformat(raw_value.replace("Z", "+00:00")).timestamp()
+        except Exception:
+            return 0
+
+
+def fetch_world_feed(feed, limit_per_source=6):
+    response = requests.get(
+        feed["url"],
+        headers={"User-Agent": f"{APP_DISPLAY_NAME}/1.0"},
+        timeout=6,
+    )
+    response.raise_for_status()
+    root = ET.fromstring(response.content)
+    entries = []
+
+    for item in root.findall(".//item"):
+        title = clean_text(item.findtext("title"), 220)
+        link = clean_text(item.findtext("link"), 500)
+        published_at = clean_text(
+            item.findtext("pubDate")
+            or item.findtext("{http://purl.org/dc/elements/1.1/}date")
+            or item.findtext("{http://www.w3.org/2005/Atom}updated"),
+            80,
+        )
+
+        if not title or not link or not link.startswith("http"):
+            continue
+
+        entries.append({
+            "title": title,
+            "url": link,
+            "source": feed["source"],
+            "published_at": published_at,
+            "_timestamp": parse_feed_timestamp(published_at),
+        })
+        if len(entries) >= limit_per_source:
+            break
+
+    return entries
+
+
+def build_news_fallback_payload():
+    return {
+        "status": "fallback",
+        "updated_at": utc_now_iso(),
+        "headlines": [
+            {"title": "Vedic Astrology: Understanding Your Birth Chart", "url": "#insights", "source": "GenZ Jyotisa", "published_at": ""},
+            {"title": "The Power of Nakshatra in Daily Life", "url": "#nakshatra-calc", "source": "GenZ Jyotisa", "published_at": ""},
+            {"title": "Book a Personalized Jyotisa Consultation", "url": "#booking", "source": "GenZ Jyotisa", "published_at": ""},
+            {"title": "Bhagavad Gita: Timeless Wisdom for Modern Souls", "url": "#gita-guidance", "source": "GenZ Jyotisa", "published_at": ""},
+        ],
+    }
+
+
+def fetch_global_headlines():
+    collected = []
+    for feed in WORLD_NEWS_FEEDS:
+        try:
+            collected.extend(fetch_world_feed(feed))
+        except Exception as feed_error:
+            print(f"News Feed Error ({feed['source']}): {feed_error}")
+
+    deduped = []
+    seen = set()
+    ordered = sorted(collected, key=lambda item: (item.get("_timestamp", 0), item["title"]), reverse=True)
+    for item in ordered:
+        dedupe_key = (item["url"].split("?")[0], item["title"].lower())
+        if dedupe_key in seen:
+            continue
+        seen.add(dedupe_key)
+        item.pop("_timestamp", None)
+        deduped.append(item)
+        if len(deduped) >= 18:
+            break
+
+    return deduped
 
 # --- Bhagavad Gita Configuration ---
 try:
@@ -128,58 +503,129 @@ def serve_static_files(path):
 @app.route('/api/create_order', methods=['POST'])
 def create_order():
     try:
-        data = request.json
-        amount = int(data.get('amount', 0)) * 100  # Convert to paise
-        currency = "INR"
-        
-        if amount <= 0:
-            return jsonify({"status": "error", "message": "Invalid amount"}), 400
-            
-        order_receipt = f"rcptid_{int(datetime.now().timestamp())}"
-        
+        if not razorpay_client:
+            return jsonify({
+                "status": "error",
+                "message": "Razorpay live credentials are not configured on the server."
+            }), 503
+
+        payload = request.get_json(silent=True) or {}
+        booking = validate_booking_payload(payload)
+        receipt = create_receipt(booking["service_code"])
+
         order_data = {
-            "amount": amount,
-            "currency": currency,
-            "receipt": order_receipt,
-            "payment_capture": 1 # Auto capture
+            "amount": booking["amount_rupees"] * 100,
+            "currency": PAYMENT_CURRENCY,
+            "receipt": receipt,
+            "notes": {
+                "service_code": booking["service_code"],
+                "service_name": booking["service"],
+                "customer_name": booking["name"],
+                "customer_phone": booking["whatsapp"],
+            },
         }
-        
-        # Create order with Razorpay
+        if RAZORPAY_MERCHANT_ID:
+            order_data["notes"]["merchant_id"] = RAZORPAY_MERCHANT_ID
+
         razorpay_order = razorpay_client.order.create(data=order_data)
-        
+        store_pending_booking(booking, razorpay_order)
+
         return jsonify({
             "status": "success",
-            "order_id": razorpay_order['id'],
-            "amount": razorpay_order['amount'],
-            "currency": razorpay_order['currency']
+            "order_id": razorpay_order["id"],
+            "amount": razorpay_order["amount"],
+            "currency": razorpay_order["currency"],
+            "receipt": receipt,
+            "key_id": RAZORPAY_KEY_ID,
+            "merchant_name": APP_DISPLAY_NAME,
+            "customer": {
+                "name": booking["name"],
+                "contact": booking["whatsapp"],
+            },
+            "service": booking["service"],
         }), 200
-        
+    except ValueError as e:
+        return jsonify({"status": "error", "message": str(e)}), 400
     except Exception as e:
         print(f"Razorpay Order Creation Error: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        traceback.print_exc()
+        return jsonify({
+            "status": "error",
+            "message": "Unable to initialize payment right now. Please try again."
+        }), 500
+
+
+@app.route('/api/verify_payment', methods=['POST'])
+def verify_payment():
+    try:
+        if not razorpay_client:
+            return jsonify({
+                "status": "error",
+                "message": "Razorpay live credentials are not configured on the server."
+            }), 503
+
+        payload = request.get_json(silent=True) or {}
+        order_id = clean_text(payload.get("order_id") or payload.get("razorpay_order_id"), 80)
+        payment_id = clean_text(payload.get("payment_id") or payload.get("razorpay_payment_id"), 80)
+        signature = clean_text(payload.get("signature") or payload.get("razorpay_signature"), 255)
+
+        if not order_id or not payment_id or not signature:
+            return jsonify({
+                "status": "error",
+                "message": "Missing payment verification details."
+            }), 400
+
+        booking = fetch_payment_booking(order_id)
+        if not booking:
+            return jsonify({
+                "status": "error",
+                "message": "Payment order was not found on the server."
+            }), 404
+
+        if not verify_payment_signature(order_id, payment_id, signature):
+            return jsonify({
+                "status": "error",
+                "message": "Payment signature verification failed."
+            }), 400
+
+        payment_response = {}
+        payment_status = "signature_verified"
+        try:
+            for attempt in range(3):
+                payment_response = razorpay_client.payment.fetch(payment_id)
+                payment_status = payment_response.get("status") or payment_status
+                if payment_status == "captured":
+                    break
+                if payment_status != "authorized":
+                    break
+                time.sleep(1)
+        except Exception as fetch_error:
+            print(f"Razorpay Payment Fetch Warning: {fetch_error}")
+
+        update_payment_booking(order_id, payment_id, signature, payment_status, payment_response)
+        booking = fetch_payment_booking(order_id)
+
+        return jsonify({
+            "status": "success",
+            "message": "Payment verified successfully." if payment_status == "captured" else "Payment verified. Capture confirmation may take a moment.",
+            "order_id": order_id,
+            "payment_id": payment_id,
+            "payment_status": payment_status,
+            "whatsapp_url": build_whatsapp_url(booking),
+        }), 200
+    except Exception as e:
+        print(f"Razorpay Payment Verification Error: {e}")
+        traceback.print_exc()
+        return jsonify({
+            "status": "error",
+            "message": "We could not verify the payment automatically. Please contact support with your Payment ID."
+        }), 500
 
 @app.route('/submit_booking', methods=['POST'])
 def submit_booking():
-    data = request.form
-    name = data.get('name', '')
-    email = data.get('email', '')
-    whatsapp = data.get('whatsapp', '')
-    dob = data.get('dob', '')
-    tob = data.get('tob', '')
-    pob = data.get('pob', '')
-    service = data.get('service', '')
-    question = data.get('question', '')
-    timestamp = datetime.now().isoformat()
-
     try:
-        conn = sqlite3.connect(DB_FILE)
-        c = conn.cursor()
-        c.execute('''
-            INSERT INTO bookings (timestamp, name, email, whatsapp, doB, tob, pob, service, question)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (timestamp, name, email, whatsapp, dob, tob, pob, service, question))
-        conn.commit()
-        conn.close()
+        data = request.form if request.form else (request.get_json(silent=True) or {})
+        store_basic_booking(data)
         return jsonify({"status": "success", "message": "Booking received"}), 200
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
@@ -363,22 +809,24 @@ def calculate_panchang():
 
 @app.route('/api/news', methods=['GET'])
 def get_news():
+    now = time.time()
+    if NEWS_CACHE["payload"] and NEWS_CACHE["expires_at"] > now:
+        return jsonify(NEWS_CACHE["payload"])
+
     try:
-        url = "https://news.google.com/rss?hl=en-IN&gl=IN&ceid=IN:en"
-        response = requests.get(url, timeout=5)
-        response.raise_for_status()
-        root = ET.fromstring(response.content)
-        items = root.findall('.//item')[:10]
-        headlines = []
-        for item in items:
-            title = item.find('title')
-            link = item.find('link')
-            if title is not None and link is not None:
-                headlines.append(f"[{title.text}]({link.text})")
-        if not headlines: raise ValueError("No news items found")
-        return jsonify({"news": " | ".join(headlines)})
+        headlines = fetch_global_headlines()
+        payload = {
+            "status": "success",
+            "updated_at": utc_now_iso(),
+            "headlines": headlines,
+        } if headlines else build_news_fallback_payload()
     except Exception as e:
-        return jsonify({"news": "✦ Spiritual wisdom is eternal... ✦ Celestial events unfolding... ✦"})
+        print(f"News Aggregation Error: {e}")
+        payload = build_news_fallback_payload()
+
+    NEWS_CACHE["payload"] = payload
+    NEWS_CACHE["expires_at"] = now + NEWS_CACHE_TTL_SECONDS
+    return jsonify(payload)
 
 # Vercel entry point
 # No app.run() needed here for production

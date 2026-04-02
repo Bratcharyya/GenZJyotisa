@@ -504,26 +504,100 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ==== BOOKING FORM ====
 const bookingForm = document.getElementById('booking-form');
+const paymentGateway = document.getElementById('payment-gateway');
+const paymentStatus = document.getElementById('payment-status');
+const paymentWhatsappLink = document.getElementById('payment-whatsapp-link');
+const paymentLinkFallback = document.getElementById('payment-link-fallback');
+const payCustomerWhatsapp = document.getElementById('pay-customer-whatsapp');
+const razorpayPayBtn = document.getElementById('razorpay-pay-btn');
+const DEFAULT_PAY_BUTTON_HTML = '<span class="pay-btn-shimmer"></span><i class="fas fa-lock"></i><span>Pay Securely</span>';
+const RAZORPAY_PAYMENT_LINK = 'https://razorpay.me/@sarthakbhattacharyya';
 let currentBookingData = {};
+
+if (payCustomerWhatsapp) payCustomerWhatsapp.textContent = '--';
+if (paymentLinkFallback) paymentLinkFallback.href = RAZORPAY_PAYMENT_LINK;
+
+function setPaymentStatus(message, tone = 'info') {
+    if (!paymentStatus) return;
+    paymentStatus.textContent = message || '';
+    paymentStatus.className = `pay-status pay-status-${tone}`;
+    paymentStatus.style.display = message ? 'block' : 'none';
+}
+
+function resetPaymentUI() {
+    if (paymentWhatsappLink) {
+        paymentWhatsappLink.href = '#';
+        paymentWhatsappLink.style.display = 'none';
+    }
+    setPaymentStatus('', 'info');
+    if (razorpayPayBtn) {
+        razorpayPayBtn.disabled = false;
+        razorpayPayBtn.innerHTML = DEFAULT_PAY_BUTTON_HTML;
+    }
+}
+
+function setPaymentButtonLoading(label) {
+    if (!razorpayPayBtn) return;
+    razorpayPayBtn.disabled = true;
+    razorpayPayBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i><span>${label}</span>`;
+}
+
+function getSelectedServiceName(option) {
+    return option.textContent.replace(/\s+[^a-zA-Z0-9()]+[^\d]*\d+\s*$/, '').trim();
+}
 if (bookingForm) {
     bookingForm.addEventListener('submit', function(e) {
         e.preventDefault();
         const formData = new FormData(bookingForm);
         const serviceSelect = document.getElementById('service-select');
         const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+        if (!selectedOption || !selectedOption.value) {
+            setPaymentStatus('Select a consultation before continuing.', 'error');
+            serviceSelect.focus();
+            return;
+        }
         currentBookingData = {
             name: formData.get('name'),
             service: selectedOption.textContent.split(' — ')[0],
             price: selectedOption.getAttribute('data-price'),
             dob: formData.get('dob'), tob: formData.get('tob') + ' ' + formData.get('ampm'),
             pob: formData.get('pob'), pob_lat: formData.get('pob_lat'), pob_lon: formData.get('pob_lon'),
-            question: formData.get('question'), sex: formData.get('sex')
+            question: formData.get('question'), sex: formData.get('sex'),
+            whatsapp: formData.get('whatsapp'),
+            sex: formData.get('sex'),
+            serviceCode: selectedOption.value,
+            service: getSelectedServiceName(selectedOption),
+            amount: Number(selectedOption.getAttribute('data-price') || 0),
+            dob: formData.get('dob'),
+            tob: `${formData.get('tob')} ${formData.get('ampm')}`,
+            pob: formData.get('pob'),
+            pob_lat: formData.get('pob_lat'),
+            pob_lon: formData.get('pob_lon'),
+            question: formData.get('question')
+        };
+        currentBookingData = {
+            name: formData.get('name'),
+            whatsapp: formData.get('whatsapp'),
+            sex: formData.get('sex'),
+            serviceCode: selectedOption.value,
+            service: getSelectedServiceName(selectedOption),
+            amount: Number(selectedOption.getAttribute('data-price') || 0),
+            dob: formData.get('dob'),
+            tob: `${formData.get('tob')} ${formData.get('ampm')}`,
+            pob: formData.get('pob'),
+            pob_lat: formData.get('pob_lat'),
+            pob_lon: formData.get('pob_lon'),
+            question: formData.get('question')
         };
         // Populate order summary
         document.getElementById('pay-customer-name').innerText = currentBookingData.name;
+        document.getElementById('pay-customer-whatsapp').innerText = currentBookingData.whatsapp;
         document.getElementById('pay-customer-dob').innerText = `${currentBookingData.dob} • ${currentBookingData.tob}`;
+        document.getElementById('pay-customer-dob').innerText = `${currentBookingData.dob} | ${currentBookingData.tob}`;
         document.getElementById('pay-service-name').innerText = currentBookingData.service;
-        document.getElementById('pay-amount').innerText = currentBookingData.price;
+        document.getElementById('pay-amount').innerText = currentBookingData.amount;
+        resetPaymentUI();
+        setPaymentStatus('Payment will be verified on the server before your consultation is confirmed.', 'info');
         bookingForm.style.display = 'none';
         document.getElementById('payment-gateway').style.display = 'block';
         document.getElementById('payment-gateway').scrollIntoView({ behavior: 'smooth' });
@@ -531,6 +605,7 @@ if (bookingForm) {
 }
 
 function goBackToForm() {
+    resetPaymentUI();
     document.getElementById('payment-gateway').style.display = 'none';
     bookingForm.style.display = 'flex';
     bookingForm.scrollIntoView({ behavior: 'smooth' });
@@ -560,7 +635,140 @@ async function proceedToRazorpay() {
 }
 
 // ==== NEWS — Multi-source with client-side fallback ====
-function renderNewsToMarquee(items) {
+async function verifyRazorpayPayment(paymentResponse) {
+    const response = await fetch('/api/verify_payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            order_id: paymentResponse.razorpay_order_id,
+            payment_id: paymentResponse.razorpay_payment_id,
+            signature: paymentResponse.razorpay_signature
+        })
+    });
+    const result = await response.json();
+    if (!response.ok || result.status !== 'success') {
+        throw new Error(result.message || 'Payment verification failed.');
+    }
+    return result;
+}
+
+async function finalizeSuccessfulPayment(paymentResponse) {
+    setPaymentButtonLoading('Verifying payment...');
+    setPaymentStatus('Payment received. Verifying it securely with Razorpay...', 'info');
+
+    try {
+        const verification = await verifyRazorpayPayment(paymentResponse);
+        const successMessage = verification.payment_status === 'captured'
+            ? 'Payment verified successfully. Opening WhatsApp confirmation...'
+            : 'Payment verified. Capture confirmation may take a moment, but your booking is recorded.';
+
+        setPaymentStatus(successMessage, 'success');
+        if (paymentWhatsappLink && verification.whatsapp_url) {
+            paymentWhatsappLink.href = verification.whatsapp_url;
+            paymentWhatsappLink.style.display = 'inline-flex';
+            window.setTimeout(() => {
+                window.location.href = verification.whatsapp_url;
+            }, 1200);
+        }
+
+        if (razorpayPayBtn) {
+            razorpayPayBtn.disabled = true;
+            razorpayPayBtn.innerHTML = '<i class="fas fa-circle-check"></i><span>Payment Verified</span>';
+        }
+    } catch (error) {
+        if (razorpayPayBtn) {
+            razorpayPayBtn.disabled = false;
+            razorpayPayBtn.innerHTML = DEFAULT_PAY_BUTTON_HTML;
+        }
+        setPaymentStatus((error.message || 'Payment completed, but verification failed.') + ' You can use the direct Razorpay payment link below only if you still need a manual fallback.', 'error');
+    }
+}
+
+async function proceedToRazorpay() {
+    if (!currentBookingData.serviceCode) {
+        setPaymentStatus('Complete the booking form before starting payment.', 'error');
+        return;
+    }
+
+    setPaymentButtonLoading('Creating secure order...');
+    setPaymentStatus('Creating your secure Razorpay order...', 'info');
+
+    try {
+        const response = await fetch('/api/create_order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: currentBookingData.name,
+                whatsapp: currentBookingData.whatsapp,
+                sex: currentBookingData.sex,
+                service_code: currentBookingData.serviceCode,
+                dob: currentBookingData.dob,
+                tob: currentBookingData.tob,
+                pob: currentBookingData.pob,
+                pob_lat: currentBookingData.pob_lat,
+                pob_lon: currentBookingData.pob_lon,
+                question: currentBookingData.question
+            })
+        });
+        const orderData = await response.json();
+        if (!response.ok || orderData.status !== 'success') {
+            throw new Error(orderData.message || 'Unable to start payment right now.');
+        }
+
+        const options = {
+            key: orderData.key_id,
+            amount: orderData.amount,
+            currency: orderData.currency,
+            name: orderData.merchant_name,
+            description: currentBookingData.service,
+            order_id: orderData.order_id,
+            prefill: {
+                name: currentBookingData.name,
+                contact: currentBookingData.whatsapp
+            },
+            notes: {
+                service_code: currentBookingData.serviceCode,
+                service_name: currentBookingData.service
+            },
+            theme: {
+                color: '#C9A84C'
+            },
+            retry: {
+                enabled: true
+            },
+            modal: {
+                ondismiss: function() {
+                    if (razorpayPayBtn) {
+                        razorpayPayBtn.disabled = false;
+                        razorpayPayBtn.innerHTML = DEFAULT_PAY_BUTTON_HTML;
+                    }
+                    setPaymentStatus('Payment window closed. Your booking details are still available if you want to try again, or you can use the direct Razorpay link below for a manual fallback.', 'info');
+                }
+            },
+            handler: function(res) {
+                finalizeSuccessfulPayment(res);
+            }
+        };
+        const rzp = new Razorpay(options);
+        rzp.on('payment.failed', function(responseData) {
+            if (razorpayPayBtn) {
+                razorpayPayBtn.disabled = false;
+                razorpayPayBtn.innerHTML = DEFAULT_PAY_BUTTON_HTML;
+            }
+            const failureReason = responseData?.error?.description || responseData?.error?.reason || 'Payment failed. Please try again.';
+            setPaymentStatus(`${failureReason} You can also use the direct Razorpay link below if checkout keeps failing.`, 'error');
+        });
+        rzp.open();
+    } catch (error) {
+        if (razorpayPayBtn) {
+            razorpayPayBtn.disabled = false;
+            razorpayPayBtn.innerHTML = DEFAULT_PAY_BUTTON_HTML;
+        }
+        setPaymentStatus((error.message || 'Payment error. Please try again.') + ' You can also use the direct Razorpay link below if needed.', 'error');
+    }
+}
+
+function legacyRenderNewsToMarquee(items) {
     const marquee = document.getElementById('news-content-marquee');
     if (!marquee || items.length === 0) return;
     const html = items.map(item =>
@@ -569,7 +777,7 @@ function renderNewsToMarquee(items) {
     marquee.innerHTML = `<span class="news-inner">${html}</span><span class="news-inner">${html}</span>`;
 }
 
-async function fetchNews() {
+async function legacyFetchNews() {
     const marquee = document.getElementById('news-content-marquee');
     if (!marquee) return;
 
@@ -613,6 +821,92 @@ async function fetchNews() {
     ]);
 }
 
+window.__legacyNewsOnload = () => {
+    legacyFetchNews();
+    const newsTrack = document.querySelector('.news-track');
+    const newsContent = document.getElementById('news-content-marquee');
+    if (newsTrack && newsContent) {
+        newsTrack.addEventListener('touchstart', () => {
+            newsContent.style.animationPlayState = 'paused';
+        }, { passive: true });
+        newsTrack.addEventListener('touchend', () => {
+            setTimeout(() => { newsContent.style.animationPlayState = 'running'; }, 3000);
+        }, { passive: true });
+    }
+};
+
+const NEWS_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
+let newsRefreshTimer = null;
+
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[char]));
+}
+
+function setNewsUpdatedLabel(text) {
+    const label = document.getElementById('news-last-updated');
+    if (label) label.textContent = text;
+}
+
+function formatNewsUpdatedText(updatedAt, status) {
+    if (status && status !== 'success') return 'Fallback feed';
+    const date = new Date(updatedAt);
+    if (Number.isNaN(date.getTime())) return 'Updated just now';
+    return `Updated ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+}
+
+function renderNewsToMarquee(items) {
+    const marquee = document.getElementById('news-content-marquee');
+    if (!marquee || items.length === 0) return;
+
+    const html = items.map((item) => {
+        const safeTitle = escapeHtml(item.title || 'Headline');
+        const safeSource = escapeHtml(item.source || 'World');
+        const safePublished = escapeHtml(item.published_at || '');
+        const rawUrl = typeof item.url === 'string' ? item.url : '#';
+        const safeUrl = (rawUrl.startsWith('http') || rawUrl.startsWith('#')) ? rawUrl.replace(/"/g, '&quot;') : '#';
+        const tooltip = `${safeSource}${safePublished ? ` | ${safePublished}` : ''}: ${safeTitle}`;
+
+        return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="news-link" title="${tooltip}" onclick="window.open(this.href,'_blank');return false;"><span class="news-source">${safeSource}</span><span class="news-title">${safeTitle}</span></a>`;
+    }).join('<span class="news-separator"> | </span>');
+
+    marquee.innerHTML = `<span class="news-inner">${html}</span><span class="news-inner">${html}</span>`;
+}
+
+async function fetchNews() {
+    const marquee = document.getElementById('news-content-marquee');
+    if (!marquee) return;
+
+    setNewsUpdatedLabel('Refreshing...');
+
+    try {
+        const res = await fetch('/api/news', { cache: 'no-store' });
+        if (res.ok) {
+            const data = await res.json();
+            if (Array.isArray(data.headlines) && data.headlines.length > 0) {
+                renderNewsToMarquee(data.headlines);
+                setNewsUpdatedLabel(formatNewsUpdatedText(data.updated_at, data.status));
+                return;
+            }
+        }
+    } catch (e) {
+        console.warn('News refresh failed:', e.message);
+    }
+
+    renderNewsToMarquee([
+        { title: 'Vedic Astrology: Understanding Your Birth Chart', url: '#insights', source: 'GenZ Jyotisa', published_at: '' },
+        { title: 'The Power of Nakshatra in Daily Life', url: '#nakshatra-calc', source: 'GenZ Jyotisa', published_at: '' },
+        { title: 'Book a Personalized Jyotisa Consultation', url: '#booking', source: 'GenZ Jyotisa', published_at: '' },
+        { title: 'Bhagavad Gita: Timeless Wisdom for Modern Souls', url: '#gita-guidance', source: 'GenZ Jyotisa', published_at: '' }
+    ]);
+    setNewsUpdatedLabel('Offline fallback');
+}
+
 window.onload = () => {
     fetchNews();
     const newsTrack = document.querySelector('.news-track');
@@ -625,7 +919,16 @@ window.onload = () => {
             setTimeout(() => { newsContent.style.animationPlayState = 'running'; }, 3000);
         }, { passive: true });
     }
+
+    if (newsRefreshTimer) window.clearInterval(newsRefreshTimer);
+    newsRefreshTimer = window.setInterval(() => {
+        if (!document.hidden) fetchNews();
+    }, NEWS_REFRESH_INTERVAL_MS);
 };
+
+document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) fetchNews();
+});
 
 // ==== NAKSHATRA AUTOCOMPLETE + FORM ====
 setupAutocomplete('nak-pob', 'nak-pob-dropdown', 'nak-lat', 'nak-lon');
