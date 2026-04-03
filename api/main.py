@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, send_from_directory
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import hashlib
 import hmac
 import io
@@ -18,8 +19,6 @@ from email.utils import formataddr, parsedate_to_datetime
 from urllib.parse import quote
 from uuid import uuid4
 
-import google.generativeai as genai
-import pandas as pd
 import razorpay
 import requests
 try:
@@ -34,8 +33,6 @@ try:
     REPORTLAB_AVAILABLE = True
 except ImportError:
     REPORTLAB_AVAILABLE = False
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
 
 # --- Vercel Path Configuration ---
 # Vercel functions run with /api as the working directory sometimes, or the root.
@@ -47,6 +44,7 @@ app = Flask(__name__, static_folder=".", static_url_path="")
 
 APP_DISPLAY_NAME = "GenZ Jyotisa"
 PAYMENT_CURRENCY = "INR"
+IS_VERCEL = os.getenv("VERCEL") == "1"
 WHATSAPP_NOTIFY_NUMBER = os.getenv("WHATSAPP_NOTIFY_NUMBER", "919630958614")
 RAZORPAY_KEY_ID = (os.getenv("RAZORPAY_KEY_ID") or os.getenv("RAZOR_KEY_ID") or "").strip()
 RAZORPAY_SECRET = (os.getenv("RAZORPAY_SECRET") or os.getenv("RAZOR_SECRET_ID") or "").strip()
@@ -79,7 +77,7 @@ SERVICE_CATALOG = {
     "dreams-30min": {"name": "Dream Interpretation (30 min)", "amount_rupees": 309},
 }
 
-DB_FILE = os.path.join(BASE_DIR, "bookings.db")
+DB_FILE = os.path.join("/tmp", "bookings.db") if IS_VERCEL else os.path.join(BASE_DIR, "bookings.db")
 GITA_DATA_PATH = os.path.join(BASE_DIR, "dataset", "gita_clean_dataset.csv")
 GITA_CACHE_FILE = os.path.join(BASE_DIR, "sanskrit_cache.json")
 
@@ -196,7 +194,7 @@ def validate_booking_payload(data):
     if not email_ok:
         raise ValueError("Please enter a valid email address.")
 
-    dob_ok = re.fullmatch(r"\d{2}\s*/\s*\d{2}\s*/\d{4}", booking["dob"])
+    dob_ok = re.fullmatch(r"\d{2}\s*/\s*\d{2}\s*/\s*\d{4}", booking["dob"])
     tob_ok = re.fullmatch(r"\d{2}\s*:\s*\d{2}(?:\s+(AM|PM))?", booking["tob"], re.IGNORECASE)
     if not dob_ok or not tob_ok:
         raise ValueError("Please review the date and time of birth before continuing.")
@@ -295,6 +293,88 @@ def fetch_payment_booking(order_id):
         return row
     finally:
         conn.close()
+
+
+def build_payment_booking_from_razorpay(order_data, payment_response=None, signature=None):
+    notes = order_data.get("notes") or {}
+    service_code = clean_text(notes.get("service_code"), 60)
+    service = get_service_details(service_code)
+    now = utc_now_iso()
+    payment_status = clean_text(
+        (payment_response or {}).get("status") or order_data.get("status") or "verified",
+        30,
+    )
+
+    return {
+        "created_at": now,
+        "updated_at": now,
+        "verified_at": now if payment_response else None,
+        "status": "paid" if payment_status == "captured" else "authorized" if payment_status == "authorized" else "verified",
+        "payment_status": payment_status,
+        "amount": int(order_data.get("amount") or ((service or {}).get("amount_rupees") or 0) * 100),
+        "currency": clean_text(order_data.get("currency") or PAYMENT_CURRENCY, 12),
+        "receipt": clean_text(order_data.get("receipt"), 60),
+        "merchant_id": clean_text(notes.get("merchant_id") or RAZORPAY_MERCHANT_ID, 80),
+        "service_code": service_code,
+        "service": clean_text(notes.get("service_name") or ((service or {}).get("name") or ""), 255),
+        "name": clean_text(notes.get("customer_name")),
+        "whatsapp": digits_only(notes.get("customer_phone"), 15),
+        "email": clean_text(notes.get("customer_email")),
+        "sex": clean_text(notes.get("sex"), 20),
+        "dob": clean_text(notes.get("dob"), 30),
+        "tob": clean_text(notes.get("tob"), 30),
+        "pob": clean_text(notes.get("pob"), 255),
+        "pob_lat": clean_text(notes.get("pob_lat"), 40),
+        "pob_lon": clean_text(notes.get("pob_lon"), 40),
+        "question": clean_text(notes.get("question"), 1000),
+        "razorpay_order_id": clean_text(order_data.get("id"), 80),
+        "razorpay_payment_id": clean_text((payment_response or {}).get("id"), 80),
+        "razorpay_signature": clean_text(signature, 255),
+        "raw_order_response": json.dumps(order_data),
+        "raw_payment_response": json.dumps(payment_response) if payment_response else None,
+    }
+
+
+def fetch_razorpay_order(order_id):
+    if not razorpay_client:
+        return None
+    try:
+        return razorpay_client.order.fetch(order_id)
+    except Exception as order_error:
+        print(f"Razorpay Order Fetch Warning: {order_error}")
+        return None
+
+
+def resolve_payment_booking(order_id, payment_response=None, signature=None):
+    booking = None
+    try:
+        booking = fetch_payment_booking(order_id)
+    except Exception as db_error:
+        print(f"Payment Booking Fetch Warning: {db_error}")
+        booking = None
+
+    if booking:
+        booking = dict(booking)
+        if payment_response:
+            booking["payment_status"] = clean_text(
+                payment_response.get("status") or booking.get("payment_status") or "verified",
+                30,
+            )
+            booking["razorpay_payment_id"] = clean_text(
+                payment_response.get("id") or booking.get("razorpay_payment_id"),
+                80,
+            )
+            booking["razorpay_signature"] = clean_text(signature or booking.get("razorpay_signature"), 255)
+            booking["verified_at"] = booking.get("verified_at") or utc_now_iso()
+            booking["updated_at"] = utc_now_iso()
+            booking["raw_payment_response"] = json.dumps(payment_response)
+        return booking
+
+    order_data = fetch_razorpay_order(order_id)
+    if not order_data:
+        return None
+
+    return build_payment_booking_from_razorpay(order_data, payment_response=payment_response, signature=signature)
 
 
 def store_basic_booking(data):
@@ -481,7 +561,7 @@ def send_email_with_pdf_attachment(recipient_email, subject, body, pdf_bytes, fi
     message.set_content(body)
     message.add_attachment(pdf_bytes, maintype="application", subtype="pdf", filename=filename)
 
-    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as smtp:
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=12) as smtp:
         if SMTP_USE_TLS:
             smtp.starttls(context=ssl.create_default_context())
         smtp.login(SMTP_USERNAME, SMTP_PASSWORD)
@@ -553,15 +633,34 @@ def deliver_invoice_emails(booking_row):
 
 WORLD_NEWS_FEEDS = [
     {"source": "BBC", "url": "https://feeds.bbci.co.uk/news/world/rss.xml"},
-    {"source": "NYT", "url": "https://rss.nytimes.com/services/xml/rss/nyt/World.xml"},
     {"source": "Al Jazeera", "url": "https://www.aljazeera.com/xml/rss/all.xml"},
-    {"source": "The Guardian", "url": "https://www.theguardian.com/world/rss"},
+    {
+        "source": "Google News",
+        "url": "https://news.google.com/rss/headlines/section/topic/WORLD?hl=en-US&gl=US&ceid=US:en",
+        "derive_source_from_title": True,
+    },
+    {
+        "source": "Google News",
+        "url": "https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en",
+        "derive_source_from_title": True,
+    },
 ]
 NEWS_CACHE_TTL_SECONDS = 300
+NEWS_FEED_REQUEST_TIMEOUT_SECONDS = 2.5
 NEWS_CACHE = {
     "expires_at": 0,
     "payload": None,
 }
+GENAI_API_KEY = os.getenv("GOOGLE_API_KEY", "AIzaSyAY7Wt5KcCMEztj8MGBwHZIPZIXyvgx624")
+
+gita_df = None
+tfidf = None
+tfidf_matrix = None
+cosine_similarity_fn = None
+chat_model = None
+krishna_model = None
+gita_resources_attempted = False
+genai_models_attempted = False
 
 
 def parse_feed_timestamp(raw_value):
@@ -577,33 +676,62 @@ def parse_feed_timestamp(raw_value):
             return 0
 
 
+def split_google_news_title(title):
+    if " - " not in title:
+        return clean_text(title, 220), "Google News"
+    headline, source = title.rsplit(" - ", 1)
+    return clean_text(headline, 220), clean_text(source, 80) or "Google News"
+
+
 def fetch_world_feed(feed, limit_per_source=6):
     response = requests.get(
         feed["url"],
-        headers={"User-Agent": f"{APP_DISPLAY_NAME}/1.0"},
-        timeout=6,
+        headers={
+            "User-Agent": f"{APP_DISPLAY_NAME}/1.0",
+            "Accept": "application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8",
+        },
+        timeout=NEWS_FEED_REQUEST_TIMEOUT_SECONDS,
     )
     response.raise_for_status()
     root = ET.fromstring(response.content)
     entries = []
 
-    for item in root.findall(".//item"):
-        title = clean_text(item.findtext("title"), 220)
-        link = clean_text(item.findtext("link"), 500)
-        published_at = clean_text(
-            item.findtext("pubDate")
-            or item.findtext("{http://purl.org/dc/elements/1.1/}date")
-            or item.findtext("{http://www.w3.org/2005/Atom}updated"),
-            80,
-        )
+    xml_items = root.findall(".//item")
+    if not xml_items:
+        xml_items = root.findall(".//{http://www.w3.org/2005/Atom}entry")
+
+    for item in xml_items:
+        is_atom_entry = item.tag.endswith("entry")
+        if is_atom_entry:
+            title = clean_text(item.findtext("{http://www.w3.org/2005/Atom}title"), 220)
+            link_node = item.find("{http://www.w3.org/2005/Atom}link")
+            link = clean_text((link_node.attrib.get("href") if link_node is not None else "") or "", 500)
+            published_at = clean_text(
+                item.findtext("{http://www.w3.org/2005/Atom}updated")
+                or item.findtext("{http://www.w3.org/2005/Atom}published"),
+                80,
+            )
+        else:
+            title = clean_text(item.findtext("title"), 220)
+            link = clean_text(item.findtext("link"), 500)
+            published_at = clean_text(
+                item.findtext("pubDate")
+                or item.findtext("{http://purl.org/dc/elements/1.1/}date")
+                or item.findtext("{http://www.w3.org/2005/Atom}updated"),
+                80,
+            )
 
         if not title or not link or not link.startswith("http"):
             continue
 
+        source = feed["source"]
+        if feed.get("derive_source_from_title"):
+            title, source = split_google_news_title(title)
+
         entries.append({
             "title": title,
             "url": link,
-            "source": feed["source"],
+            "source": source,
             "published_at": published_at,
             "_timestamp": parse_feed_timestamp(published_at),
         })
@@ -628,11 +756,14 @@ def build_news_fallback_payload():
 
 def fetch_global_headlines():
     collected = []
-    for feed in WORLD_NEWS_FEEDS:
-        try:
-            collected.extend(fetch_world_feed(feed))
-        except Exception as feed_error:
-            print(f"News Feed Error ({feed['source']}): {feed_error}")
+    with ThreadPoolExecutor(max_workers=min(4, len(WORLD_NEWS_FEEDS))) as executor:
+        future_to_feed = {executor.submit(fetch_world_feed, feed): feed for feed in WORLD_NEWS_FEEDS}
+        for future in as_completed(future_to_feed):
+            feed = future_to_feed[future]
+            try:
+                collected.extend(future.result())
+            except Exception as feed_error:
+                print(f"News Feed Error ({feed['source']}): {feed_error}")
 
     deduped = []
     seen = set()
@@ -649,36 +780,59 @@ def fetch_global_headlines():
 
     return deduped
 
-# --- Bhagavad Gita Configuration ---
-try:
-    if os.path.exists(GITA_DATA_PATH):
+def ensure_gita_resources():
+    global gita_df, tfidf, tfidf_matrix, cosine_similarity_fn, gita_resources_attempted
+    if gita_resources_attempted:
+        return
+
+    gita_resources_attempted = True
+    try:
+        import pandas as pd
+        from sklearn.feature_extraction.text import TfidfVectorizer
+        from sklearn.metrics.pairwise import cosine_similarity as cosine_similarity_import
+    except Exception as import_error:
+        print(f"Gita Import Error: {import_error}")
+        return
+
+    if not os.path.exists(GITA_DATA_PATH):
+        print(f"Gita Dataset not found at {GITA_DATA_PATH}")
+        return
+
+    try:
         gita_df = pd.read_csv(GITA_DATA_PATH)
         tfidf = TfidfVectorizer(stop_words='english')
-        tfidf_matrix = tfidf.fit_transform(gita_df['text'])
-    else:
-        print(f"Gita Dataset not found at {GITA_DATA_PATH}")
+        tfidf_matrix = tfidf.fit_transform(gita_df["text"].fillna(""))
+        cosine_similarity_fn = cosine_similarity_import
+    except Exception as load_error:
+        print(f"Gita Dataset Load Error: {load_error}")
         gita_df = None
-except Exception as e:
-    print(f"Error loading Gita dataset: {e}")
-    gita_df = None
+        tfidf = None
+        tfidf_matrix = None
+        cosine_similarity_fn = None
 
-# Configure Gemini
-GENAI_API_KEY = os.getenv("GOOGLE_API_KEY", "AIzaSyAY7Wt5KcCMEztj8MGBwHZIPZIXyvgx624")
-if not GENAI_API_KEY:
-    print("WARNING: GOOGLE_API_KEY not found in environment variables!")
-else:
-    print("GOOGLE_API_KEY found. Initializing AI...")
+def ensure_genai_models():
+    global chat_model, krishna_model, genai_models_attempted
+    if genai_models_attempted:
+        return
 
-genai.configure(api_key=GENAI_API_KEY)
+    genai_models_attempted = True
+    if not GENAI_API_KEY:
+        print("WARNING: GOOGLE_API_KEY not found in environment variables!")
+        return
 
-chat_model = genai.GenerativeModel(
-    "gemini-1.5-flash"
-)
+    try:
+        import google.generativeai as genai
 
-krishna_model = genai.GenerativeModel(
-    "gemini-1.5-flash",
-    tools=[{"google_search": {}}],  # Enable real-time cosmic awareness
-    system_instruction="""You are Lord Krishna, the supreme speaker of the Bhagavad Gita. Address the user as "O Arjuna".
+        genai.configure(api_key=GENAI_API_KEY)
+
+        chat_model = genai.GenerativeModel(
+            "gemini-1.5-flash"
+        )
+
+        krishna_model = genai.GenerativeModel(
+            "gemini-1.5-flash",
+            tools=[{"google_search": {}}],  # Enable real-time cosmic awareness
+            system_instruction="""You are Lord Krishna, the supreme speaker of the Bhagavad Gita. Address the user as "O Arjuna".
 Your purpose is to provide divine guidance using both the timeless wisdom of the Gita and the vastness of the modern world (use Google Search to provide real-time updates and context for current global struggles).
 
 ANALYSIS RULES:
@@ -692,7 +846,11 @@ TONE & STRUCTURE:
 - LIMIT responses to 3-6 sentences.
 - MANDATORY ENDING: Every response must conclude with a "PATH FORWARD"—a single, practical spiritual habit or a specific mental shift for the seeker to practice today.
 - Remain in character as the eternal Guru and Friend."""
-)
+        )
+    except Exception as model_error:
+        print(f"Gemini Initialization Error: {model_error}")
+        chat_model = None
+        krishna_model = None
 
 def fetch_sanskrit(chapter, verse):
     if os.path.exists(GITA_CACHE_FILE):
@@ -727,30 +885,41 @@ def create_order():
         if not razorpay_client:
             return jsonify({
                 "status": "error",
-                "message": "Razorpay live credentials are not configured on the server. Set RAZOR_KEY_ID, RAZOR_SECRET_ID, and MERCHANT_ID in Vercel."
+                "message": "Razorpay live credentials are not configured on the server. Set RAZORPAY_KEY_ID, RAZORPAY_SECRET, and RAZORPAY_MERCHANT_ID in Vercel. Legacy aliases RAZOR_KEY_ID, RAZOR_SECRET_ID, and MERCHANT_ID are also accepted."
             }), 503
 
         payload = request.get_json(silent=True) or {}
         booking = validate_booking_payload(payload)
         receipt = create_receipt(booking["service_code"])
 
+        order_notes = {
+            "service_code": booking["service_code"],
+            "service_name": booking["service"],
+            "customer_name": booking["name"],
+            "customer_phone": booking["whatsapp"],
+            "customer_email": booking["email"],
+            "sex": booking["sex"],
+            "dob": booking["dob"],
+            "tob": booking["tob"],
+            "pob": booking["pob"],
+            "pob_lat": booking["pob_lat"],
+            "pob_lon": booking["pob_lon"],
+            "question": clean_text(booking["question"], 240),
+        }
         order_data = {
             "amount": booking["amount_rupees"] * 100,
             "currency": PAYMENT_CURRENCY,
             "receipt": receipt,
-            "notes": {
-                "service_code": booking["service_code"],
-                "service_name": booking["service"],
-                "customer_name": booking["name"],
-                "customer_phone": booking["whatsapp"],
-                "customer_email": booking["email"],
-            },
+            "notes": order_notes,
         }
         if RAZORPAY_MERCHANT_ID:
             order_data["notes"]["merchant_id"] = RAZORPAY_MERCHANT_ID
 
         razorpay_order = razorpay_client.order.create(data=order_data)
-        store_pending_booking(booking, razorpay_order)
+        try:
+            store_pending_booking(booking, razorpay_order)
+        except Exception as storage_error:
+            print(f"Payment Booking Storage Warning: {storage_error}")
 
         return jsonify({
             "status": "success",
@@ -784,7 +953,7 @@ def verify_payment():
         if not razorpay_client:
             return jsonify({
                 "status": "error",
-                "message": "Razorpay live credentials are not configured on the server. Set RAZOR_KEY_ID, RAZOR_SECRET_ID, and MERCHANT_ID in Vercel."
+                "message": "Razorpay live credentials are not configured on the server. Set RAZORPAY_KEY_ID, RAZORPAY_SECRET, and RAZORPAY_MERCHANT_ID in Vercel. Legacy aliases RAZOR_KEY_ID, RAZOR_SECRET_ID, and MERCHANT_ID are also accepted."
             }), 503
 
         payload = request.get_json(silent=True) or {}
@@ -798,11 +967,11 @@ def verify_payment():
                 "message": "Missing payment verification details."
             }), 400
 
-        booking = fetch_payment_booking(order_id)
+        booking = resolve_payment_booking(order_id)
         if not booking:
             return jsonify({
                 "status": "error",
-                "message": "Payment order was not found on the server."
+                "message": "Payment order was not found on the server. Please retry once, and if it still fails, send the Razorpay payment ID on WhatsApp."
             }), 404
 
         if not verify_payment_signature(order_id, payment_id, signature):
@@ -825,8 +994,12 @@ def verify_payment():
         except Exception as fetch_error:
             print(f"Razorpay Payment Fetch Warning: {fetch_error}")
 
-        update_payment_booking(order_id, payment_id, signature, payment_status, payment_response)
-        booking = fetch_payment_booking(order_id)
+        try:
+            update_payment_booking(order_id, payment_id, signature, payment_status, payment_response)
+        except Exception as update_error:
+            print(f"Payment Booking Update Warning: {update_error}")
+
+        booking = resolve_payment_booking(order_id, payment_response=payment_response, signature=signature) or booking
         invoice_delivery = {
             "customer_sent": False,
             "owner_sent": False,
@@ -883,12 +1056,15 @@ def submit_booking():
 
 @app.route('/api/gita/recommend', methods=['POST'])
 def gita_recommend():
-    data = request.json
+    data = request.get_json(silent=True) or {}
     user_input = data.get('query', '')
-    if gita_df is None: return jsonify({"error": "Dataset not loaded"}), 500
+    ensure_gita_resources()
+    ensure_genai_models()
+    if gita_df is None or tfidf is None or tfidf_matrix is None or cosine_similarity_fn is None:
+        return jsonify({"error": "Dataset not loaded"}), 500
     
     query_vec = tfidf.transform([user_input])
-    scores = cosine_similarity(query_vec, tfidf_matrix).flatten()
+    scores = cosine_similarity_fn(query_vec, tfidf_matrix).flatten()
     top_indices = scores.argsort()[-3:][::-1]
     
     results = []
@@ -906,21 +1082,28 @@ def gita_recommend():
     
     verses_text = "\n".join([f"{r['reference']}: {r['text']}" for r in results])
     prompt = f"User feeling: {user_input}\n\nVerses:\n{verses_text}\n\nWrite 3-4 gentle sentences explaining how these Gita verses help. Be compassionate."
-    try:
-        insight = chat_model.generate_content(prompt).text
-    except Exception as e:
-        error_detail = str(e)
-        if "API_KEY_INVALID" in error_detail or "expired" in error_detail.lower():
-            insight = "O Arjuna, the divine connection is disturbed. (Your API Key appears to be invalid or expired. Please update it in your Vercel Environment Variables.)"
-        else:
-            insight = f"May the wisdom of the Gita bring you peace. (Network/API Detail: {error_detail})"
+    if not chat_model:
+        insight = "May the wisdom of the Gita bring you peace. (The AI explanation service is temporarily unavailable.)"
+    else:
+        try:
+            insight = chat_model.generate_content(prompt).text
+        except Exception as e:
+            error_detail = str(e)
+            if "API_KEY_INVALID" in error_detail or "expired" in error_detail.lower():
+                insight = "O Arjuna, the divine connection is disturbed. (Your API Key appears to be invalid or expired. Please update it in your Vercel Environment Variables.)"
+            else:
+                insight = f"May the wisdom of the Gita bring you peace. (Network/API Detail: {error_detail})"
     return jsonify({"verses": results, "insight": insight})
 
 @app.route('/api/gita/chat', methods=['POST'])
 def gita_chat():
-    data = request.json
+    data = request.get_json(silent=True) or {}
     message = data.get('message', '')
     history = data.get('history', [])
+    ensure_genai_models()
+    if not krishna_model:
+        msg = "O Arjuna, the divine connection is unavailable right now. Please verify the GOOGLE_API_KEY in your environment variables."
+        return jsonify({"response": msg, "shlokas": [], "status": "error"}), 500
     try:
         chat = krishna_model.start_chat(history=history)
         response = chat.send_message(message)

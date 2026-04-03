@@ -572,6 +572,14 @@ function resetPaymentUI() {
     }
 }
 
+function revealPaymentFallbackLink() {
+    if (!paymentLinkFallback) return;
+    paymentLinkFallback.href = RAZORPAY_PAYMENT_LINK;
+    window.setTimeout(() => {
+        paymentLinkFallback.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 120);
+}
+
 function setPaymentButtonLoading(label) {
     if (!razorpayPayBtn) return;
     razorpayPayBtn.disabled = true;
@@ -704,6 +712,7 @@ async function finalizeSuccessfulPayment(paymentResponse) {
             razorpayPayBtn.disabled = false;
             razorpayPayBtn.innerHTML = DEFAULT_PAY_BUTTON_HTML;
         }
+        revealPaymentFallbackLink();
         setPaymentStatus((error.message || 'Payment completed, but verification failed.') + ' You can use the direct Razorpay payment link below only if you still need a manual fallback.', 'error');
     }
 }
@@ -769,6 +778,7 @@ async function proceedToRazorpay() {
                         razorpayPayBtn.disabled = false;
                         razorpayPayBtn.innerHTML = DEFAULT_PAY_BUTTON_HTML;
                     }
+                    revealPaymentFallbackLink();
                     setPaymentStatus('Payment window closed. Your booking details are still available if you want to try again, or you can use the direct Razorpay link below for a manual fallback.', 'info');
                 }
             },
@@ -782,6 +792,7 @@ async function proceedToRazorpay() {
                 razorpayPayBtn.disabled = false;
                 razorpayPayBtn.innerHTML = DEFAULT_PAY_BUTTON_HTML;
             }
+            revealPaymentFallbackLink();
             const failureReason = responseData?.error?.description || responseData?.error?.reason || 'Payment failed. Please try again.';
             setPaymentStatus(`${failureReason} You can also use the direct Razorpay link below if checkout keeps failing.`, 'error');
         });
@@ -791,6 +802,7 @@ async function proceedToRazorpay() {
             razorpayPayBtn.disabled = false;
             razorpayPayBtn.innerHTML = DEFAULT_PAY_BUTTON_HTML;
         }
+        revealPaymentFallbackLink();
         setPaymentStatus((error.message || 'Payment error. Please try again.') + ' You can also use the direct Razorpay link below if needed.', 'error');
     }
 }
