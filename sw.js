@@ -1,30 +1,29 @@
-const CACHE_NAME = 'genz-jy-v14';
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/script.js',
-  '/manifest.json',
-  '/assets/rahu_icon.png'
-];
+const LEGACY_CACHE_PREFIX = 'genz-jy';
 
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        return cache.addAll(urlsToCache);
-      })
-  );
+    event.waitUntil(self.skipWaiting());
 });
 
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response;
+self.addEventListener('activate', event => {
+    event.waitUntil((async () => {
+        const cacheKeys = await caches.keys();
+        await Promise.all(
+            cacheKeys
+                .filter(key => key.startsWith(LEGACY_CACHE_PREFIX))
+                .map(key => caches.delete(key))
+        );
+
+        await self.clients.claim();
+
+        const controlledClients = await self.clients.matchAll({
+            type: 'window',
+            includeUncontrolled: true
+        });
+
+        for (const client of controlledClients) {
+            client.postMessage({ type: 'FORCE_RELOAD' });
         }
-        return fetch(event.request);
-      })
-  );
+
+        await self.registration.unregister();
+    })());
 });

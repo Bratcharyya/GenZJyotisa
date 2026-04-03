@@ -4,10 +4,55 @@
 // ============================================================
 
 // ==== INITIALIZATION ====
+const APP_BUILD_ID = window.__APP_BUILD_ID__ || '2026-04-03-01';
+const LEGACY_CACHE_PREFIX = 'genz-jy';
+let hardRefreshTriggered = false;
+
 AOS.init({ once: true, offset: 50, duration: 800, easing: 'ease-in-out' });
+
+async function purgeLegacyAppCaches() {
+    if (!('caches' in window)) return;
+    const cacheKeys = await caches.keys();
+    await Promise.all(
+        cacheKeys
+            .filter(key => key.startsWith(LEGACY_CACHE_PREFIX))
+            .map(key => caches.delete(key))
+    );
+}
+
+function forceReloadToFreshBuild() {
+    if (hardRefreshTriggered) return;
+    hardRefreshTriggered = true;
+
+    const nextUrl = new URL(window.location.href);
+    nextUrl.searchParams.set('v', APP_BUILD_ID);
+    window.location.replace(nextUrl.toString());
+}
+
 if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', event => {
+        if (event.data?.type === 'FORCE_RELOAD') {
+            forceReloadToFreshBuild();
+        }
+    });
+
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(() => {});
+        purgeLegacyAppCaches().catch(() => {});
+
+        navigator.serviceWorker.getRegistration('/')
+            .then(existingRegistration => {
+                if (!existingRegistration) return null;
+                return navigator.serviceWorker.register(`/sw.js?v=${encodeURIComponent(APP_BUILD_ID)}`, {
+                    scope: '/',
+                    updateViaCache: 'none'
+                });
+            })
+            .then(registration => registration?.update?.())
+            .catch(() => {});
+    });
+} else {
+    window.addEventListener('load', () => {
+        purgeLegacyAppCaches().catch(() => {});
     });
 }
 
