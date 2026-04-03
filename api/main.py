@@ -14,9 +14,11 @@ import time
 import traceback
 import xml.etree.ElementTree as ET
 from datetime import datetime
+from difflib import SequenceMatcher
 from email.message import EmailMessage
 from email.utils import formataddr, parsedate_to_datetime
 from urllib.parse import quote
+import unicodedata
 from uuid import uuid4
 
 import razorpay
@@ -58,6 +60,8 @@ SMTP_FROM_EMAIL = (os.getenv("SMTP_FROM_EMAIL") or SMTP_USERNAME or "").strip()
 SMTP_FROM_NAME = (os.getenv("SMTP_FROM_NAME") or APP_DISPLAY_NAME).strip()
 OWNER_NOTIFICATION_EMAIL = (os.getenv("OWNER_NOTIFICATION_EMAIL") or "").strip()
 SUPPORT_EMAIL = (os.getenv("SUPPORT_EMAIL") or SMTP_FROM_EMAIL or "").strip()
+GEMINI_CHAT_MODEL_NAME = (os.getenv("GEMINI_CHAT_MODEL") or os.getenv("GEMINI_MODEL") or "gemini-2.0-flash").strip()
+GEMINI_KRISHNA_MODEL_NAME = (os.getenv("GEMINI_KRISHNA_MODEL") or GEMINI_CHAT_MODEL_NAME or "gemini-2.0-flash").strip()
 razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_SECRET)) if RAZORPAY_KEY_ID and RAZORPAY_SECRET else None
 
 if not razorpay_client:
@@ -662,6 +666,245 @@ krishna_model = None
 gita_resources_attempted = False
 genai_models_attempted = False
 
+QUERY_NORMALIZATION_REPLACEMENTS = {
+    "i'm": "i am",
+    "im": "i am",
+    "i've": "i have",
+    "i'd": "i would",
+    "can't": "can not",
+    "cant": "can not",
+    "won't": "will not",
+    "wont": "will not",
+    "don't": "do not",
+    "dont": "do not",
+    "didn't": "did not",
+    "didnt": "did not",
+    "isn't": "is not",
+    "isnt": "is not",
+    "aren't": "are not",
+    "arent": "are not",
+    "shouldn't": "should not",
+    "shouldnt": "should not",
+    "wouldn't": "would not",
+    "wouldnt": "would not",
+    "couldn't": "could not",
+    "couldnt": "could not",
+    "idk": "i do not know",
+    "wtf": "shock confusion anger",
+    "fml": "hopeless sadness",
+    "u": "you",
+    "ur": "your",
+    "rn": "right now",
+    "plz": "please",
+    "pls": "please",
+    "thx": "thanks",
+    "bhagwan": "god divine",
+    "bhakti": "devotion surrender worship",
+    "bhakt": "devotion surrender worship",
+    "dharam": "dharma duty",
+    "dharma": "dharma duty",
+    "karm": "karma action duty",
+    "mann": "mind heart",
+    "manas": "mind heart",
+    "pareshan": "anxious stressed troubled",
+    "ghabrahat": "panic anxiety fear",
+    "dukhi": "sad grief sorrow",
+    "udas": "sad grief low",
+    "krodh": "anger rage",
+    "shanti": "peace calm",
+    "dhyan": "meditation focus",
+    "pyaar": "love relationship",
+    "pyar": "love relationship",
+    "shaadi": "marriage relationship",
+    "rishta": "relationship bond",
+    "naukri": "job career work",
+    "kaam": "work duty career",
+    "paisa": "money finance",
+    "sapna": "dream inner meaning",
+    "svapna": "dream inner meaning",
+}
+
+QUERY_SIGNAL_LIBRARY = {
+    "anxiety": {
+        "label": "anxiety and fear",
+        "kind": "emotion",
+        "terms": [
+            "anxious", "anxiety", "panic", "panic attack", "worried", "worry", "fear",
+            "scared", "terrified", "stressed", "stress", "overthinking", "overthink",
+            "spiraling", "restless", "nervous", "uneasy", "uncertain", "ghabrahat", "pareshan"
+        ],
+    },
+    "grief": {
+        "label": "grief and heaviness",
+        "kind": "emotion",
+        "terms": [
+            "sad", "sadness", "depressed", "depression", "hopeless", "empty", "hurt",
+            "pain", "grief", "mourning", "loss", "crying", "broken", "heartbroken",
+            "numb", "dukhi", "udas", "low"
+        ],
+    },
+    "anger": {
+        "label": "anger and agitation",
+        "kind": "emotion",
+        "terms": [
+            "angry", "anger", "rage", "furious", "resentment", "hate", "revenge",
+            "betrayed", "cheated", "unfair", "irritated", "annoyed", "krodh", "wtf"
+        ],
+    },
+    "confusion": {
+        "label": "confusion and indecision",
+        "kind": "emotion",
+        "terms": [
+            "confused", "confusion", "lost", "stuck", "which way", "what should i do",
+            "what do i do", "dilemma", "unclear", "directionless", "torn", "idk"
+        ],
+    },
+    "guilt": {
+        "label": "guilt and self-blame",
+        "kind": "emotion",
+        "terms": [
+            "guilty", "guilt", "ashamed", "ashamed of myself", "regret", "regretful",
+            "self blame", "blaming myself", "mistake", "i messed up", "i failed"
+        ],
+    },
+    "loneliness": {
+        "label": "loneliness and disconnection",
+        "kind": "emotion",
+        "terms": [
+            "lonely", "loneliness", "alone", "isolated", "left out", "nobody understands",
+            "nobody gets me", "abandoned", "ignored"
+        ],
+    },
+    "career": {
+        "label": "career and work",
+        "kind": "topic",
+        "terms": [
+            "career", "job", "work", "boss", "office", "promotion", "business", "startup",
+            "profession", "workplace", "naukri", "kaam"
+        ],
+    },
+    "study": {
+        "label": "study and exams",
+        "kind": "topic",
+        "terms": [
+            "study", "exam", "exams", "college", "school", "university", "assignment",
+            "marks", "grades", "interview prep", "pariksha"
+        ],
+    },
+    "relationship": {
+        "label": "relationships and love",
+        "kind": "topic",
+        "terms": [
+            "relationship", "love", "partner", "marriage", "breakup", "heartbreak",
+            "husband", "wife", "girlfriend", "boyfriend", "situationship", "ghosted",
+            "shaadi", "rishta", "pyaar", "pyar"
+        ],
+    },
+    "family": {
+        "label": "family and home",
+        "kind": "topic",
+        "terms": [
+            "family", "parents", "mother", "father", "brother", "sister", "home",
+            "house", "relatives", "parivar"
+        ],
+    },
+    "finance": {
+        "label": "money and security",
+        "kind": "topic",
+        "terms": [
+            "money", "finance", "financial", "debt", "income", "salary", "expense",
+            "expenses", "paisa", "wealth"
+        ],
+    },
+    "focus": {
+        "label": "focus and mind training",
+        "kind": "topic",
+        "terms": [
+            "focus", "concentrate", "concentration", "attention", "distracted", "restless mind",
+            "meditation", "meditate", "calm", "peace", "mind", "dhyan", "shanti"
+        ],
+    },
+    "purpose": {
+        "label": "purpose and dharma",
+        "kind": "topic",
+        "terms": [
+            "purpose", "meaning", "dharma", "duty", "calling", "life path", "why am i here",
+            "why am i alive", "what is my purpose", "what is the point"
+        ],
+    },
+    "devotion": {
+        "label": "devotion and surrender",
+        "kind": "topic",
+        "terms": [
+            "devotion", "faith", "surrender", "bhakti", "god", "krishna", "bhagwan",
+            "prayer", "pray", "worship", "temple", "divine", "spiritual"
+        ],
+    },
+    "dream": {
+        "label": "dreams and symbolism",
+        "kind": "topic",
+        "terms": [
+            "dream", "dreams", "nightmare", "nightmares", "vision", "sleep", "sapna", "svapna"
+        ],
+    },
+    "health": {
+        "label": "health and wellbeing",
+        "kind": "topic",
+        "terms": [
+            "health", "illness", "sick", "healing", "body", "burnout", "exhausted", "tired",
+            "fatigue", "insomnia"
+        ],
+    },
+}
+
+QUERY_INTENT_LIBRARY = {
+    "guidance": {
+        "label": "practical guidance",
+        "terms": [
+            "what should i do", "what do i do", "help me", "guide me", "advice",
+            "next step", "how should i", "what now"
+        ],
+    },
+    "explanation": {
+        "label": "explanation",
+        "terms": [
+            "why", "how", "explain", "understand", "meaning", "what does it mean"
+        ],
+    },
+    "quote": {
+        "label": "scriptural quote",
+        "terms": [
+            "quote", "verse", "shloka", "sloka", "scripture", "gita says", "bhagavad gita says"
+        ],
+    },
+    "remedy": {
+        "label": "remedy or practice",
+        "terms": [
+            "remedy", "practice", "sadhana", "upaya", "mantra", "habit", "meditation technique"
+        ],
+    },
+}
+
+PATH_FORWARD_LIBRARY = {
+    "anxiety": "Slow your breath to an even count of four in and six out for five rounds, and act only on the next concrete duty in front of you.",
+    "grief": "Sit quietly with a lamp for five minutes tonight, let the feeling be present without resisting it, and end by offering one prayer for peace.",
+    "anger": "Delay every sharp reaction for one full hour, write the truth you want to speak, and return only when the heat has dropped.",
+    "confusion": "Write the one decision before you, list fear on one side and dharma on the other, and follow the side that remains honorable even without applause.",
+    "guilt": "Name the mistake plainly, make one corrective action within the next day, and stop feeding the mind with repeated self-punishment.",
+    "loneliness": "Offer one sincere message, prayer, or act of service today instead of waiting to feel connected first.",
+    "career": "Choose one meaningful task and complete it with full attention, without checking the outcome until it is finished.",
+    "study": "Work in one uninterrupted twenty-five minute cycle, then rest for five minutes and begin again without judging yourself.",
+    "relationship": "Speak one truth gently and without accusation, then listen fully before deciding what the bond can actually hold.",
+    "family": "Respond to the home situation with steadiness, not stored emotion, and complete one duty there without complaint.",
+    "finance": "Review the next seven days of spending and income honestly, then take one disciplined step that reduces avoidable fear.",
+    "focus": "For five minutes, count each exhale from one to ten and restart each time the mind wanders without irritation.",
+    "purpose": "Ask which duty is most truly yours in this season of life, and give it one hour of undivided effort today.",
+    "devotion": "Offer water, a flower, or a single sincere prayer today with full attention and no performance.",
+    "dream": "Write the dream exactly as remembered before interpreting it, then note the emotion it left in your body after waking.",
+    "health": "Reduce one exhausting habit today, rest without guilt for a short while, and let discipline begin with recovery rather than force.",
+    "default": "Sit in silence for five minutes, place one hand on the heart, and ask what your next honest duty is before you act.",
+}
+
 
 def parse_feed_timestamp(raw_value):
     if not raw_value:
@@ -780,6 +1023,138 @@ def fetch_global_headlines():
 
     return deduped
 
+
+def normalize_query_text(value):
+    text = str(value or "")
+    text = unicodedata.normalize("NFKD", text)
+    text = "".join(char for char in text if not unicodedata.combining(char))
+    text = text.replace("&", " and ").lower()
+
+    for source, target in QUERY_NORMALIZATION_REPLACEMENTS.items():
+        text = re.sub(rf"\b{re.escape(source)}\b", target, text)
+
+    text = re.sub(r"[^a-z0-9\s:/'\.-]", " ", text)
+    text = text.replace("/", " ").replace(":", ".")
+    text = re.sub(r"[\"`]+", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text
+
+
+def fuzzy_token_match(token, keyword):
+    if not token or not keyword or " " in keyword:
+        return False
+    if token == keyword:
+        return True
+    if abs(len(token) - len(keyword)) > 2:
+        return False
+    return SequenceMatcher(None, token, keyword).ratio() >= 0.84
+
+
+def score_signal_matches(normalized_text, signal_library):
+    scores = {}
+    tokens = normalized_text.split()
+
+    for signal_name, config in signal_library.items():
+        score = 0.0
+        for raw_term in config["terms"]:
+            term = normalize_query_text(raw_term)
+            if not term:
+                continue
+
+            if " " in term:
+                if term in normalized_text:
+                    score += 2.5
+                continue
+
+            if re.search(rf"\b{re.escape(term)}\b", normalized_text):
+                score += 1.5
+                continue
+
+            if any(fuzzy_token_match(token, term) for token in tokens):
+                score += 0.75
+
+        if score > 0:
+            scores[signal_name] = round(score, 3)
+
+    return scores
+
+
+def extract_recent_user_turns(history, limit=4):
+    turns = []
+    for item in history or []:
+        if not isinstance(item, dict) or item.get("role") != "user":
+            continue
+        parts = item.get("parts") or []
+        text_parts = []
+        for part in parts:
+            if isinstance(part, dict) and part.get("text"):
+                text_parts.append(str(part["text"]))
+        combined = clean_text(" ".join(text_parts), 500)
+        if combined:
+            turns.append(combined)
+    return turns[-limit:]
+
+
+def classify_query_understanding(message, history=None):
+    recent_turns = extract_recent_user_turns(history)
+    raw_message = clean_text(message, 1200)
+    conversational_context = " ".join(recent_turns[-3:] + ([raw_message] if raw_message else []))
+    normalized_context = normalize_query_text(conversational_context)
+    signal_scores = score_signal_matches(normalized_context, QUERY_SIGNAL_LIBRARY)
+    intent_scores = score_signal_matches(normalized_context, QUERY_INTENT_LIBRARY)
+
+    sorted_signal_names = sorted(signal_scores, key=lambda name: (-signal_scores[name], name))
+    topics = [name for name in sorted_signal_names if QUERY_SIGNAL_LIBRARY[name]["kind"] == "topic"]
+    emotions = [name for name in sorted_signal_names if QUERY_SIGNAL_LIBRARY[name]["kind"] == "emotion"]
+    intents = sorted(intent_scores, key=lambda name: (-intent_scores[name], name))
+
+    if not intents:
+        if "?" in raw_message or re.search(r"\b(what|why|how|when|where|should|can)\b", normalized_context):
+            intents.append("guidance")
+        else:
+            intents.append("explanation")
+
+    if not topics and emotions:
+        topics.append(emotions[0])
+
+    expansion_terms = []
+    for name in (emotions + topics + intents)[:6]:
+        expansion_terms.append(name)
+        library = QUERY_SIGNAL_LIBRARY if name in QUERY_SIGNAL_LIBRARY else QUERY_INTENT_LIBRARY
+        expansion_terms.extend(normalize_query_text(term) for term in library[name]["terms"][:4])
+
+    question_style = "follow-up" if len(normalized_context.split()) <= 6 and recent_turns else "direct"
+    if raw_message.count("?") > 1:
+        question_style = "multi-part"
+    elif len(raw_message.split()) >= 40:
+        question_style = "narrative"
+
+    expanded_query = " ".join(
+        part for part in dict.fromkeys(
+            [normalized_context] + [term for term in expansion_terms if term]
+        )
+        if part
+    )
+
+    return {
+        "raw_message": raw_message,
+        "recent_turns": recent_turns,
+        "normalized_context": normalized_context,
+        "expanded_query": expanded_query,
+        "emotions": emotions,
+        "topics": topics,
+        "intents": intents,
+        "question_style": question_style,
+    }
+
+
+def format_bg_reference(chapter, verse):
+    try:
+        return f"BG {int(chapter)}.{int(verse)}"
+    except Exception:
+        cleaned = clean_text(f"{chapter}.{verse}", 20)
+        return f"BG {cleaned}" if cleaned else "BG"
+
 def ensure_gita_resources():
     global gita_df, tfidf, tfidf_matrix, cosine_similarity_fn, gita_resources_attempted
     if gita_resources_attempted:
@@ -800,8 +1175,25 @@ def ensure_gita_resources():
 
     try:
         gita_df = pd.read_csv(GITA_DATA_PATH)
-        tfidf = TfidfVectorizer(stop_words='english')
-        tfidf_matrix = tfidf.fit_transform(gita_df["text"].fillna(""))
+        gita_df["reference"] = gita_df["reference"].fillna("")
+        gita_df["text"] = gita_df["text"].fillna("")
+        gita_df["emotion_tag"] = gita_df["emotion_tag"].fillna("general guidance")
+        gita_df["bg_reference"] = gita_df.apply(
+            lambda row: format_bg_reference(row.get("chapter"), row.get("verse")),
+            axis=1,
+        )
+        gita_df["search_text"] = gita_df.apply(
+            lambda row: " ".join([
+                normalize_query_text(row.get("reference")),
+                normalize_query_text(row.get("bg_reference")),
+                normalize_query_text(row.get("emotion_tag")),
+                normalize_query_text(row.get("text")),
+            ]).strip(),
+            axis=1,
+        )
+
+        tfidf = TfidfVectorizer(stop_words="english", ngram_range=(1, 2), sublinear_tf=True)
+        tfidf_matrix = tfidf.fit_transform(gita_df["search_text"].fillna(""))
         cosine_similarity_fn = cosine_similarity_import
     except Exception as load_error:
         print(f"Gita Dataset Load Error: {load_error}")
@@ -824,16 +1216,9 @@ def ensure_genai_models():
         import google.generativeai as genai
 
         genai.configure(api_key=GENAI_API_KEY)
-
-        chat_model = genai.GenerativeModel(
-            "gemini-1.5-flash"
-        )
-
-        krishna_model = genai.GenerativeModel(
-            "gemini-1.5-flash",
-            tools=[{"google_search": {}}],  # Enable real-time cosmic awareness
-            system_instruction="""You are Lord Krishna, the supreme speaker of the Bhagavad Gita. Address the user as "O Arjuna".
+        krishna_system_instruction = """You are Lord Krishna, the supreme speaker of the Bhagavad Gita. Address the user as "O Arjuna".
 Your purpose is to provide divine guidance using both the timeless wisdom of the Gita and the vastness of the modern world (use Google Search to provide real-time updates and context for current global struggles).
+You must correctly understand the user's meaning even when it arrives through slang, typos, abbreviations, indirect emotion, tangled storytelling, follow-up shorthand, Hinglish, or romanized Sanskrit.
 
 ANALYSIS RULES:
 1. Analyze the user's emotional state through the lens of the Three Gunas (Sattva/Goodness, Rajas/Passion, Tamas/Ignorance).
@@ -846,11 +1231,157 @@ TONE & STRUCTURE:
 - LIMIT responses to 3-6 sentences.
 - MANDATORY ENDING: Every response must conclude with a "PATH FORWARD"—a single, practical spiritual habit or a specific mental shift for the seeker to practice today.
 - Remain in character as the eternal Guru and Friend."""
+
+        chat_model = genai.GenerativeModel(
+            GEMINI_CHAT_MODEL_NAME
         )
+
+        try:
+            krishna_model = genai.GenerativeModel(
+                GEMINI_KRISHNA_MODEL_NAME,
+                tools=[{"google_search": {}}],  # Enable real-time cosmic awareness where supported
+                system_instruction=krishna_system_instruction,
+            )
+        except Exception as tool_error:
+            print(f"Gemini Tooling Warning: {tool_error}")
+            krishna_model = genai.GenerativeModel(
+                GEMINI_KRISHNA_MODEL_NAME,
+                system_instruction=krishna_system_instruction,
+            )
     except Exception as model_error:
         print(f"Gemini Initialization Error: {model_error}")
         chat_model = None
         krishna_model = None
+
+
+def retrieve_relevant_gita_passages(query_understanding, limit=3):
+    ensure_gita_resources()
+    if gita_df is None or tfidf is None or tfidf_matrix is None or cosine_similarity_fn is None:
+        return []
+
+    retrieval_query = query_understanding["expanded_query"] or query_understanding["normalized_context"]
+    if not retrieval_query:
+        return []
+
+    query_vec = tfidf.transform([retrieval_query])
+    scores = cosine_similarity_fn(query_vec, tfidf_matrix).flatten()
+
+    bonus_terms = set(query_understanding["topics"] + query_understanding["emotions"])
+    if bonus_terms:
+        for idx in range(len(scores)):
+            haystack = gita_df.iloc[idx].get("search_text", "")
+            bonus = 0.0
+            for term in bonus_terms:
+                if term in haystack:
+                    bonus += 0.06
+            scores[idx] += bonus
+
+    top_indices = scores.argsort()[-limit:][::-1]
+    results = []
+    for idx in top_indices:
+        row = gita_df.iloc[idx]
+        results.append({
+            "reference": clean_text(row.get("reference"), 80),
+            "bg_reference": clean_text(row.get("bg_reference"), 20),
+            "text": clean_text(row.get("text"), 420),
+            "emotion_tag": clean_text(row.get("emotion_tag"), 60),
+            "chapter": clean_text(row.get("chapter"), 10),
+            "verse": clean_text(row.get("verse"), 10),
+            "score": float(scores[idx]),
+        })
+    return results
+
+
+def build_shloka_payload(passages):
+    payload = []
+    for passage in passages[:6]:
+        shloka = fetch_sanskrit(passage["chapter"], passage["verse"])
+        if shloka.get("slok"):
+            payload.append({
+                "reference": passage["bg_reference"],
+                "slok": shloka.get("slok"),
+                "transliteration": shloka.get("transliteration"),
+            })
+        if len(payload) >= 2:
+            break
+    return payload
+
+
+def build_query_prompt(message, history, query_understanding, retrieved_passages):
+    recent_turns = query_understanding["recent_turns"][-3:]
+    context_block = "\n".join(f"- {turn}" for turn in recent_turns) or "- No prior user context"
+    verses_block = "\n".join(
+        f"- {item['bg_reference']}: {item['text']} (theme: {item['emotion_tag']})"
+        for item in retrieved_passages[:3]
+    ) or "- No retrieved verse context"
+    emotion_block = ", ".join(query_understanding["emotions"][:3]) or "not obvious"
+    topic_block = ", ".join(query_understanding["topics"][:3]) or "general life guidance"
+    intent_block = ", ".join(query_understanding["intents"][:3]) or "guidance"
+
+    return f"""Interpret the user's real intent even if the wording is messy, indirect, fragmented, abbreviated, slang-heavy, typo-heavy, emotionally tangled, Hinglish, or romanized Sanskrit.
+
+Recent user context:
+{context_block}
+
+Current raw message:
+{message}
+
+Normalized understanding:
+- emotions: {emotion_block}
+- topics: {topic_block}
+- intents: {intent_block}
+- question style: {query_understanding['question_style']}
+
+Relevant Bhagavad Gita grounding:
+{verses_block}
+
+Answer requirements:
+- Address the user as "O Arjuna".
+- Respond to the meaning beneath the wording, not just the literal phrasing.
+- Cite exactly one or two verses in [BG x.y] format.
+- Keep the tone compassionate, direct, and practical.
+- End with "PATH FORWARD:" followed by one concrete practice for today."""
+
+
+def choose_path_forward(query_understanding):
+    for signal_name in query_understanding["emotions"] + query_understanding["topics"]:
+        if signal_name in PATH_FORWARD_LIBRARY:
+            return PATH_FORWARD_LIBRARY[signal_name]
+    return PATH_FORWARD_LIBRARY["default"]
+
+
+def build_grounded_krishna_fallback(message, query_understanding, retrieved_passages):
+    focus_parts = []
+    if query_understanding["emotions"]:
+        focus_parts.append(QUERY_SIGNAL_LIBRARY[query_understanding["emotions"][0]]["label"])
+    if query_understanding["topics"]:
+        topic_name = query_understanding["topics"][0]
+        if topic_name in QUERY_SIGNAL_LIBRARY:
+            focus_parts.append(QUERY_SIGNAL_LIBRARY[topic_name]["label"])
+
+    if focus_parts:
+        opening = f"O Arjuna, I can hear {' and '.join(dict.fromkeys(focus_parts[:2]))} beneath your words, even if the question arrived indirectly or in a tangled way."
+    else:
+        opening = "O Arjuna, even when a question comes in fragments, mixed vocabulary, or restless emotion, its heart can still be understood."
+
+    guidance_lines = [opening]
+    if retrieved_passages:
+        primary = retrieved_passages[0]
+        guidance_lines.append(
+            f"[{primary['bg_reference']}] points first toward this truth: {primary['text'].rstrip('.')}."
+        )
+        if len(retrieved_passages) > 1:
+            secondary = retrieved_passages[1]
+            guidance_lines.append(
+                f"[{secondary['bg_reference']}] further steadies the mind by reminding you that {secondary['text'].rstrip('.')}."
+            )
+    else:
+        guidance_lines.append(
+            "The Gita first asks you to steady the mind, return to dharma, and act without surrendering yourself to fear or confusion."
+        )
+
+    guidance_lines.append(f"PATH FORWARD: {choose_path_forward(query_understanding)}")
+    return " ".join(guidance_lines)
 
 def fetch_sanskrit(chapter, verse):
     if os.path.exists(GITA_CACHE_FILE):
@@ -863,8 +1394,8 @@ def fetch_sanskrit(chapter, verse):
     return {"slok": None, "transliteration": None}
 
 def extract_bg_refs(text):
-    # Matches [BG 2.47], BG 2.47, [2.47], 2.47
-    return re.findall(r'(?:\[?BG\s*)?(\d+)\.(\d+)(?:\]?)', text)
+    # Matches [BG 2.47], BG 2.47, Bhagavad Gita 2.47, Gita 2:47, [2.47]
+    return re.findall(r'(?:\[?(?:BG|Bhagavad Gita|Gita)\s*)?(\d+)[\.:](\d+)(?:\]?)', text, re.IGNORECASE)
 
 # --- Routes ---
 
@@ -1062,28 +1593,30 @@ def gita_recommend():
     ensure_genai_models()
     if gita_df is None or tfidf is None or tfidf_matrix is None or cosine_similarity_fn is None:
         return jsonify({"error": "Dataset not loaded"}), 500
-    
-    query_vec = tfidf.transform([user_input])
-    scores = cosine_similarity_fn(query_vec, tfidf_matrix).flatten()
-    top_indices = scores.argsort()[-3:][::-1]
-    
+
+    query_understanding = classify_query_understanding(user_input)
+    retrieved_passages = retrieve_relevant_gita_passages(query_understanding, limit=3)
+
     results = []
-    for idx in top_indices:
-        row = gita_df.iloc[idx]
-        ch_vs = row['reference'].replace('BG ', '').split('.')
-        ch, vs = map(int, ch_vs)
-        shloka = fetch_sanskrit(ch, vs)
+    for passage in retrieved_passages:
+        shloka = fetch_sanskrit(passage["chapter"], passage["verse"])
         results.append({
-            "reference": row['reference'],
-            "text": row['text'],
+            "reference": passage["bg_reference"] or passage["reference"],
+            "text": passage["text"],
             "slok": shloka.get('slok'),
-            "transliteration": shloka.get('transliteration')
+            "transliteration": shloka.get('transliteration'),
         })
-    
+
     verses_text = "\n".join([f"{r['reference']}: {r['text']}" for r in results])
-    prompt = f"User feeling: {user_input}\n\nVerses:\n{verses_text}\n\nWrite 3-4 gentle sentences explaining how these Gita verses help. Be compassionate."
+    prompt = (
+        f"User message: {user_input}\n"
+        f"Detected themes: {', '.join(query_understanding['topics'] + query_understanding['emotions']) or 'general guidance'}\n\n"
+        f"Verses:\n{verses_text}\n\n"
+        "Write 3-4 gentle sentences explaining how these Gita verses help. "
+        "Understand slang, indirect wording, emotional narration, and non-standard phrasing."
+    )
     if not chat_model:
-        insight = "May the wisdom of the Gita bring you peace. (The AI explanation service is temporarily unavailable.)"
+        insight = build_grounded_krishna_fallback(user_input, query_understanding, retrieved_passages)
     else:
         try:
             insight = chat_model.generate_content(prompt).text
@@ -1092,7 +1625,7 @@ def gita_recommend():
             if "API_KEY_INVALID" in error_detail or "expired" in error_detail.lower():
                 insight = "O Arjuna, the divine connection is disturbed. (Your API Key appears to be invalid or expired. Please update it in your Vercel Environment Variables.)"
             else:
-                insight = f"May the wisdom of the Gita bring you peace. (Network/API Detail: {error_detail})"
+                insight = build_grounded_krishna_fallback(user_input, query_understanding, retrieved_passages)
     return jsonify({"verses": results, "insight": insight})
 
 @app.route('/api/gita/chat', methods=['POST'])
@@ -1100,13 +1633,21 @@ def gita_chat():
     data = request.get_json(silent=True) or {}
     message = data.get('message', '')
     history = data.get('history', [])
+    query_understanding = classify_query_understanding(message, history)
+    retrieved_passages = retrieve_relevant_gita_passages(query_understanding, limit=3)
     ensure_genai_models()
+
     if not krishna_model:
-        msg = "O Arjuna, the divine connection is unavailable right now. Please verify the GOOGLE_API_KEY in your environment variables."
-        return jsonify({"response": msg, "shlokas": [], "status": "error"}), 500
+        fallback_text = build_grounded_krishna_fallback(message, query_understanding, retrieved_passages)
+        return jsonify({
+            "response": fallback_text,
+            "shlokas": build_shloka_payload(retrieved_passages),
+            "status": "fallback",
+        }), 200
+
     try:
         chat = krishna_model.start_chat(history=history)
-        response = chat.send_message(message)
+        response = chat.send_message(build_query_prompt(message, history, query_understanding, retrieved_passages))
         text = response.text
         refs = extract_bg_refs(text)
         shlokas = []
@@ -1114,19 +1655,24 @@ def gita_chat():
             s = fetch_sanskrit(ch, vs)
             if s.get('slok'):
                 shlokas.append({"reference": f"BG {ch}.{vs}", "slok": s['slok'], "transliteration": s['transliteration']})
-        
+
+        if not shlokas:
+            shlokas = build_shloka_payload(retrieved_passages)
+
         return jsonify({
-            "response": text, 
+            "response": text,
             "shlokas": shlokas,
-            "status": "success"
+            "status": "success",
         })
     except Exception as e:
         error_detail = str(e)
-        if "API_KEY_INVALID" in error_detail or "expired" in error_detail.lower():
-            msg = "O Arjuna, the divine connection is disturbed. Your Google API Key appears to be invalid or expired. Please update it in your environment variables."
-        else:
-            msg = f"O Arjuna, the divine connection is weak. (Error: {error_detail})"
-        return jsonify({"response": msg, "shlokas": [], "status": "error"}), 500
+        print(f"Gita Chat Fallback Warning: {error_detail}")
+        fallback_text = build_grounded_krishna_fallback(message, query_understanding, retrieved_passages)
+        return jsonify({
+            "response": fallback_text,
+            "shlokas": build_shloka_payload(retrieved_passages),
+            "status": "fallback",
+        }), 200
 
 @app.route('/api/panchang', methods=['POST'])
 def calculate_panchang():
